@@ -843,6 +843,7 @@ niceshowmini
 - [Brett Beloin](https://github.com/brettbeloin)
 - [Brian Luporini](https://github.com/bluporini)
 - [Bruce4545](https://github.com/Bruce4545)
+- Easton Martin
 - [Bruno Buss](https://github.com/bussbruno)
 - [Bruno Figueiredo](https://github.com/BrunollFigueiredo)
 - [Bulbul Malik](https://github.com/bulbulmalik)
