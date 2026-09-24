@@ -1,0 +1,49 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <title>Quick Autofill</title>
+  <link rel="stylesheet" href="popup.css">
+</head>
+<body>
+  <header>
+    <h1>Quick Autofill</h1>
+    <button id="fill" class="primary">Fill this page</button>
+    <label class="check"><input id="overwrite" type="checkbox"> Replace fields that already have text</label>
+    <p id="status" role="status"></p>
+  </header>
+
+  <details id="profileSection">
+    <summary>My details</summary>
+    <form id="profile">
+      <fieldset>
+        <legend>Personal</legend>
+        <label>First name <input name="firstName" autocomplete="off"></label>
+        <label>Last name <input name="lastName" autocomplete="off"></label>
+        <label>Email <input name="email" type="email" autocomplete="off"></label>
+        <label>Phone <input name="phone" type="tel" autocomplete="off"></label>
+      </fieldset>
+      <fieldset>
+        <legend>Address</legend>
+        <label>Street <input name="street" autocomplete="off"></label>
+        <label>City <input name="city" autocomplete="off"></label>
+        <label>State <input name="state" autocomplete="off" placeholder="OK or Oklahoma"></label>
+        <label>ZIP <input name="zip" autocomplete="off"></label>
+        <label>Country <input name="country" autocomplete="off"></label>
+      </fieldset>
+      <fieldset>
+        <legend>School &amp; links</legend>
+        <label>School <input name="school" autocomplete="off"></label>
+        <label>Major <input name="major" autocomplete="off"></label>
+        <label>Graduation year <input name="gradYear" autocomplete="off"></label>
+        <label>LinkedIn URL <input name="linkedin" type="url" autocomplete="off"></label>
+        <label>Website / GitHub <input name="website" type="url" autocomplete="off"></label>
+      </fieldset>
+      <p class="hint">Saved automatically, only in this browser. Passwords and card numbers are never stored or filled.</p>
+    </form>
+  </details>
+
+  <script src="fill.js"></script>
+  <script src="popup.js"></script>
+</body>
+</html>
