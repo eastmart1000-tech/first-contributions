@@ -1,0 +1,48 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <title>Claude Browser Agent</title>
+  <link rel="stylesheet" href="sidepanel.css">
+</head>
+<body>
+  <header>
+    <h1>Browser Agent</h1>
+    <div class="header-buttons">
+      <button id="newChat" title="Start a new conversation">New chat</button>
+      <button id="toggleSettings" title="Settings">Settings</button>
+    </div>
+  </header>
+
+  <section id="settings" hidden>
+    <label>Anthropic API key
+      <input id="apiKey" type="password" placeholder="sk-ant-..." autocomplete="off">
+    </label>
+    <label>Model
+      <select id="model">
+        <option value="claude-opus-5">Claude Opus 5 (best)</option>
+        <option value="claude-sonnet-5">Claude Sonnet 5 (cheaper)</option>
+        <option value="claude-haiku-4-5">Claude Haiku 4.5 (cheapest)</option>
+      </select>
+    </label>
+    <label>Max steps per task
+      <input id="maxSteps" type="number" min="1" max="500" value="100">
+    </label>
+    <button id="saveSettings">Save</button>
+    <p class="hint">Your key is stored only in this browser (chrome.storage.local) and is sent only to api.anthropic.com.</p>
+  </section>
+
+  <main id="log"></main>
+
+  <footer>
+    <div id="status">Idle</div>
+    <textarea id="prompt" rows="3" placeholder="Tell me what to do on this page… (Enter to send, Shift+Enter for a new line)"></textarea>
+    <div class="footer-buttons">
+      <button id="send" class="primary">Send</button>
+      <button id="stop" class="danger" disabled>Stop</button>
+    </div>
+  </footer>
+
+  <script src="sidepanel.js"></script>
+</body>
+</html>
