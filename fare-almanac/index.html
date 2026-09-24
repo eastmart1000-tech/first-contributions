@@ -1,0 +1,847 @@
+<title>Fare Almanac</title>
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@500;600;700&family=Figtree:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap">
+<style>
+:root{
+  --bg:#EDF1F5; --surface:#FFFFFF; --surface-2:#F4F7FA; --ink:#102033; --ink-2:#44556A; --muted:#6F7F93;
+  --line:#D3DBE4; --line-2:#E4E9EF; --accent:#C46F00; --accent-soft:#FBEBD2; --good:#177A52; --bad:#B63A26;
+  --b0:#0B5C57; --b1:#277F75; --b2:#56A095; --b3:#8DC3B8; --b4:#C0DED6; --b5:#E4F1ED;
+  --f0:#FFFFFF; --f1:#FFFFFF; --f2:#FFFFFF; --f3:#102033; --f4:#102033; --f5:#44556A;
+  --bar:#2C7469; --bar-hi:#C46F00; --grid:#E4E9EF; --off:#EEF2F5;
+  --shadow:0 1px 2px rgba(16,32,51,.06),0 6px 20px rgba(16,32,51,.05);
+  --display:"Barlow Condensed","Arial Narrow",Arial,sans-serif;
+  --body:"Figtree",system-ui,-apple-system,"Segoe UI",sans-serif;
+  --mono:"JetBrains Mono",ui-monospace,Menlo,Consolas,monospace;
+}
+@media (prefers-color-scheme: dark){
+  :root:not([data-theme="light"]){
+    color-scheme:dark;
+    --bg:#0B131D; --surface:#121D2A; --surface-2:#172433; --ink:#E4EBF2; --ink-2:#A7B4C3; --muted:#8190A2;
+    --line:#26364A; --line-2:#1C2A3A; --accent:#F0A63A; --accent-soft:#3A2A12; --good:#4CC38A; --bad:#F07A62;
+    --b0:#8BE3D2; --b1:#5EC4B3; --b2:#3E9D8F; --b3:#2B786D; --b4:#21574F; --b5:#1A3D3A;
+    --f0:#0B131D; --f1:#0B131D; --f2:#0B131D; --f3:#E4EBF2; --f4:#E4EBF2; --f5:#A7B4C3;
+    --bar:#5EC4B3; --bar-hi:#F0A63A; --grid:#1C2A3A; --off:#152131;
+    --shadow:0 1px 2px rgba(0,0,0,.3),0 6px 20px rgba(0,0,0,.2);
+  }
+}
+:root[data-theme="dark"]{
+  color-scheme:dark;
+  --bg:#0B131D; --surface:#121D2A; --surface-2:#172433; --ink:#E4EBF2; --ink-2:#A7B4C3; --muted:#8190A2;
+  --line:#26364A; --line-2:#1C2A3A; --accent:#F0A63A; --accent-soft:#3A2A12; --good:#4CC38A; --bad:#F07A62;
+  --b0:#8BE3D2; --b1:#5EC4B3; --b2:#3E9D8F; --b3:#2B786D; --b4:#21574F; --b5:#1A3D3A;
+  --f0:#0B131D; --f1:#0B131D; --f2:#0B131D; --f3:#E4EBF2; --f4:#E4EBF2; --f5:#A7B4C3;
+  --bar:#5EC4B3; --bar-hi:#F0A63A; --grid:#1C2A3A; --off:#152131;
+  --shadow:0 1px 2px rgba(0,0,0,.3),0 6px 20px rgba(0,0,0,.2);
+}
+*{box-sizing:border-box}
+[hidden]{display:none!important}
+body{background:var(--bg);color:var(--ink);font-family:var(--body);font-size:15px;line-height:1.5;margin:0}
+.wrap{max-width:1180px;margin:0 auto;padding-inline:20px;padding-block:20px 56px;display:flex;flex-direction:column;gap:20px}
+@media (max-width:520px){.wrap{padding-inline:16px}}
+h1,h2,h3{font-family:var(--display);font-weight:600;letter-spacing:.01em;margin:0;text-wrap:balance}
+h2{font-size:24px;line-height:1.15}
+h3{font-size:19px}
+.eyebrow{font-size:11.5px;font-weight:600;letter-spacing:.12em;text-transform:uppercase;color:var(--muted)}
+.mono{font-family:var(--mono)}
+.num{font-variant-numeric:tabular-nums}
+a{color:var(--ink)}
+button,select,input{font:inherit;color:inherit}
+:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
+
+/* masthead */
+.mast{display:flex;flex-wrap:wrap;align-items:flex-end;justify-content:space-between;gap:12px 24px}
+.brand{display:flex;flex-direction:column;gap:2px}
+.brand h1{font-size:34px;line-height:1;font-weight:700;letter-spacing:.02em}
+.brand p{margin:0;color:var(--ink-2);font-size:14px;max-width:60ch}
+.tabs{display:flex;gap:4px;background:var(--surface);border:1px solid var(--line);border-radius:10px;padding:4px}
+.tab{border:0;background:transparent;padding:7px 14px;border-radius:7px;font-weight:600;font-size:14px;cursor:pointer;color:var(--ink-2)}
+.tab[aria-selected="true"]{background:var(--ink);color:var(--bg)}
+
+/* search */
+form.search{background:var(--surface);border:1px solid var(--line);border-radius:14px;box-shadow:var(--shadow);padding:16px;display:grid;grid-template-columns:repeat(12,1fr);gap:12px 14px;align-items:end}
+.fld{display:flex;flex-direction:column;gap:5px;min-width:0}
+.fld label,.fld .lbl{font-size:11.5px;font-weight:600;letter-spacing:.08em;text-transform:uppercase;color:var(--muted)}
+.fld input,.fld select{height:40px;border:1px solid var(--line);background:var(--surface-2);border-radius:8px;padding:0 10px;width:100%;min-width:0}
+.fld input:focus,.fld select:focus{border-color:var(--accent);outline:none;box-shadow:0 0 0 3px var(--accent-soft)}
+.f-from{grid-column:span 3}.f-swap{grid-column:span 1;align-self:end}.f-to{grid-column:span 3}
+.f-trip{grid-column:span 2}.f-nights{grid-column:span 1}.f-trav{grid-column:span 2}
+.f-win{grid-column:span 4}.f-cab{grid-column:span 3}.f-chk{grid-column:span 5;display:flex;flex-wrap:wrap;gap:8px 18px;align-items:center;min-height:40px}
+.swap{height:40px;width:100%;border:1px solid var(--line);background:var(--surface);border-radius:8px;cursor:pointer;font-size:18px;color:var(--ink-2)}
+.swap:hover{border-color:var(--ink-2)}
+.chk{display:flex;align-items:center;gap:7px;font-size:14px;color:var(--ink-2);cursor:pointer}
+.chk input{width:16px;height:16px;accent-color:var(--accent)}
+.err{grid-column:1/-1;color:var(--bad);font-size:14px;margin:0}
+@media (max-width:900px){
+  .f-from,.f-to{grid-column:span 5}.f-swap{grid-column:span 2}
+  .f-trip{grid-column:span 4}.f-nights{grid-column:span 3}.f-trav{grid-column:span 5}
+  .f-win{grid-column:span 7}.f-cab{grid-column:span 5}.f-chk{grid-column:1/-1}
+}
+@media (max-width:520px){
+  form.search{grid-template-columns:1fr 1fr;padding:14px}
+  .f-from,.f-to,.f-win,.f-chk{grid-column:1/-1}.f-swap{grid-column:1/-1}
+  .f-trip,.f-cab{grid-column:span 1}.f-nights,.f-trav{grid-column:span 1}
+}
+
+/* route board */
+.board{display:flex;flex-wrap:wrap;align-items:center;justify-content:space-between;gap:12px 28px}
+.codes{display:flex;align-items:center;gap:14px}
+.code{display:flex;flex-direction:column}
+.code b{font-family:var(--display);font-weight:700;font-size:56px;line-height:.9;letter-spacing:.03em}
+.code span{font-size:13px;color:var(--ink-2)}
+.plane{width:64px;height:24px;color:var(--accent);flex:none}
+.facts{display:flex;flex-wrap:wrap;gap:6px}
+.chip{font-size:12.5px;font-weight:600;padding:4px 10px;border-radius:999px;background:var(--surface);border:1px solid var(--line);color:var(--ink-2);white-space:nowrap}
+.chip.intl{background:var(--accent-soft);border-color:transparent;color:var(--ink)}
+@media (max-width:520px){.code b{font-size:42px}.plane{width:40px}}
+
+.note{font-size:13px;color:var(--ink-2);background:var(--surface-2);border:1px dashed var(--line);border-radius:10px;padding:10px 14px;margin:0}
+
+/* tiles */
+.tiles{display:grid;grid-template-columns:repeat(4,1fr);gap:12px}
+@media (max-width:900px){.tiles{grid-template-columns:repeat(2,1fr)}}
+@media (max-width:460px){.tiles{grid-template-columns:1fr}}
+.tile{background:var(--surface);border:1px solid var(--line);border-radius:12px;padding:14px 16px;display:flex;flex-direction:column;gap:4px}
+.tile.lead{background:var(--ink);color:var(--bg);border-color:var(--ink)}
+.tile.lead .eyebrow,.tile.lead .sub{color:color-mix(in srgb,var(--bg) 72%,var(--ink))}
+.tile .big{font-family:var(--display);font-weight:700;font-size:34px;line-height:1.05;font-variant-numeric:tabular-nums}
+.tile .mid{font-family:var(--display);font-weight:600;font-size:26px;line-height:1.1}
+.tile .sub{font-size:13.5px;color:var(--ink-2)}
+
+/* panels */
+.panel{background:var(--surface);border:1px solid var(--line);border-radius:14px;padding:18px;display:flex;flex-direction:column;gap:14px;min-width:0}
+.phead{display:flex;flex-wrap:wrap;align-items:baseline;justify-content:space-between;gap:6px 16px}
+.phead p{margin:0;color:var(--ink-2);font-size:13.5px}
+.grid2{display:grid;grid-template-columns:1fr 1fr;gap:20px}
+@media (max-width:900px){.grid2{grid-template-columns:1fr}}
+
+/* calendar */
+.cal{display:grid;grid-template-columns:repeat(auto-fill,minmax(200px,1fr));gap:18px 20px}
+.month h4{margin:0 0 6px;font-family:var(--display);font-weight:600;font-size:17px;display:flex;justify-content:space-between;align-items:baseline}
+.month h4 span{font-family:var(--body);font-size:12px;font-weight:500;color:var(--muted)}
+.mgrid{display:grid;grid-template-columns:repeat(7,1fr);gap:2px}
+.wd{font-size:10.5px;text-align:center;color:var(--muted);font-weight:600;padding-bottom:2px}
+.cell{aspect-ratio:1;max-width:100%;border:0;border-radius:4px;font-size:11.5px;font-weight:500;display:flex;align-items:center;justify-content:center;cursor:pointer;padding:0;position:relative;font-variant-numeric:tabular-nums}
+.cell.off{background:var(--off);color:var(--muted);cursor:default;opacity:.55}
+.cell.blank{background:transparent;cursor:default}
+.b0{background:var(--b0);color:var(--f0)}.b1{background:var(--b1);color:var(--f1)}.b2{background:var(--b2);color:var(--f2)}
+.b3{background:var(--b3);color:var(--f3)}.b4{background:var(--b4);color:var(--f4)}.b5{background:var(--b5);color:var(--f5)}
+.cell.best{box-shadow:inset 0 0 0 2px var(--accent)}
+.cell.best::after{content:"";position:absolute;top:2px;right:2px;width:5px;height:5px;border-radius:50%;background:var(--accent)}
+.cell.sel{outline:2px solid var(--ink);outline-offset:1px;z-index:1}
+.legend{display:flex;flex-wrap:wrap;align-items:center;gap:10px 16px;font-size:12.5px;color:var(--ink-2)}
+.ramp{display:flex;align-items:center;gap:6px}
+.ramp i{display:block;width:26px;height:12px;border-radius:3px}
+.key-best{display:inline-flex;align-items:center;gap:6px}
+.key-best i{width:14px;height:14px;border-radius:3px;box-shadow:inset 0 0 0 2px var(--accent);display:block}
+
+/* charts */
+.chart{width:100%;min-width:0}
+.chart svg{display:block;width:100%;height:auto;overflow:visible}
+.chart text{font-family:var(--body);fill:var(--muted);font-size:11.5px}
+.chart .val{fill:var(--ink);font-weight:600;font-variant-numeric:tabular-nums}
+.chart .lab{fill:var(--ink-2)}
+.hit{fill:transparent;cursor:crosshair}
+.foot{font-size:12.5px;color:var(--muted);margin:0}
+
+/* tables */
+.tscroll{overflow-x:auto;-webkit-overflow-scrolling:touch}
+table{border-collapse:collapse;width:100%;font-size:14px}
+th{font-size:11px;letter-spacing:.08em;text-transform:uppercase;color:var(--muted);font-weight:600;text-align:left;padding:8px 10px;border-bottom:1px solid var(--line);white-space:nowrap}
+td{padding:9px 10px;border-bottom:1px solid var(--line-2);vertical-align:middle;white-space:nowrap}
+td.r,th.r{text-align:right}
+tbody tr:hover{background:var(--surface-2)}
+.al{display:flex;align-items:center;gap:8px}
+.alc{font-family:var(--mono);font-size:11px;font-weight:500;padding:2px 5px;border-radius:4px;background:var(--surface-2);border:1px solid var(--line);color:var(--ink-2)}
+.tot{font-weight:700;font-variant-numeric:tabular-nums}
+.cheap{color:var(--good);font-weight:600;font-size:12px}
+.stops0{color:var(--good);font-weight:600}
+.links{display:flex;flex-wrap:wrap;gap:8px}
+.btn{display:inline-flex;align-items:center;gap:6px;padding:8px 14px;border-radius:8px;border:1px solid var(--line);background:var(--surface-2);text-decoration:none;font-weight:600;font-size:13.5px;color:var(--ink);cursor:pointer}
+.btn:hover{border-color:var(--ink-2)}
+.btn.primary{background:var(--ink);color:var(--bg);border-color:var(--ink)}
+.linkbtn{border:0;background:none;padding:0;font-weight:600;text-decoration:underline;text-underline-offset:3px;cursor:pointer;color:var(--ink)}
+.explore-tbl{max-height:560px;overflow:auto}
+.explore-tbl th{position:sticky;top:0;background:var(--surface);z-index:1}
+.empty{padding:28px 10px;text-align:center;color:var(--ink-2)}
+
+#tip{position:fixed;z-index:50;pointer-events:none;background:var(--ink);color:var(--bg);font-size:12.5px;line-height:1.45;padding:8px 10px;border-radius:8px;max-width:240px;box-shadow:0 6px 20px rgba(0,0,0,.25)}
+#tip b{font-weight:700}
+.method{font-size:13.5px;color:var(--ink-2);display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));gap:12px 24px}
+.method p{margin:0}
+.method b{color:var(--ink)}
+@media (prefers-reduced-motion:no-preference){.cell,.btn,.tab{transition:background-color .15s,border-color .15s}}
+</style>
+
+<div class="wrap">
+  <header class="mast">
+    <div class="brand">
+      <h1>Fare Almanac</h1>
+      <p>Compare airlines on any route, domestic or international, and find the cheapest dates to fly and the best time to book.</p>
+    </div>
+    <div class="tabs" role="tablist" aria-label="View">
+      <button class="tab" role="tab" id="tab-route" aria-selected="true">Route fares</button>
+      <button class="tab" role="tab" id="tab-explore" aria-selected="false">Explore destinations</button>
+    </div>
+  </header>
+
+  <form class="search" id="search" autocomplete="off">
+    <div class="fld f-from"><label for="from">From</label><input id="from" list="aplist" value="OKC — Oklahoma City" spellcheck="false"></div>
+    <div class="f-swap"><button type="button" class="swap" id="swap" aria-label="Swap origin and destination">⇄</button></div>
+    <div class="fld f-to"><label for="to">To</label><input id="to" list="aplist" value="LHR — London" spellcheck="false"></div>
+    <div class="fld f-trip"><label for="trip">Trip</label>
+      <select id="trip"><option value="rt">Round trip</option><option value="ow">One way</option></select></div>
+    <div class="fld f-nights"><label for="nights">Nights</label><input id="nights" type="number" min="1" max="45" value="7" inputmode="numeric"></div>
+    <div class="fld f-trav"><label for="trav">Travelers</label>
+      <select id="trav"><option>1</option><option>2</option><option>3</option><option>4</option><option>5</option><option>6</option></select></div>
+    <div class="fld f-win"><label for="win">Travel window</label><select id="win"></select></div>
+    <div class="fld f-cab"><label for="cabin">Cabin</label>
+      <select id="cabin"><option value="economy">Economy</option><option value="premium">Premium economy</option><option value="business">Business / first</option></select></div>
+    <div class="f-chk">
+      <label class="chk"><input type="checkbox" id="bags" checked> Include a checked bag</label>
+      <label class="chk"><input type="checkbox" id="nonstop"> Nonstop only</label>
+    </div>
+    <p class="err" id="err" hidden></p>
+    <datalist id="aplist"></datalist>
+  </form>
+
+  <section id="view-route" class="wrap" style="padding:0;max-width:none"></section>
+  <section id="view-explore" class="wrap" style="padding:0;max-width:none" hidden></section>
+
+  <p class="note">Fares here are <b>modeled estimates</b>, not live quotes. They come from typical airline pricing patterns: distance, airline price tier, seasonal demand, US holidays, day of week, how far ahead you book, and checked-bag fees. Use them to pick dates, then press a booking link to confirm the live price.</p>
+
+  <section class="panel">
+    <h3>How the estimates work</h3>
+    <div class="method">
+      <p><b>Base fare.</b> Great-circle miles between the airports set the base price. Short domestic hops cost more per mile than long-haul flights. Smaller airports like OKC and TUL carry a premium.</p>
+      <p><b>Airlines.</b> Each carrier has a price tier (legacy, low-cost, ultra-low-cost, long-haul budget) and a real hub network. That network decides whether a route is nonstop or connects, and through which hub.</p>
+      <p><b>When you fly.</b> Seasonal demand at the destination, US holidays (Thanksgiving, Christmas, spring break, July 4th), Lunar New Year, and weekday pricing: Tuesday and Wednesday departures usually cost least.</p>
+      <p><b>When you book.</b> Prices assume you book today. Domestic fares bottom out about 1 to 3 months ahead, international about 2 to 6 months. Fares rise sharply in the last 3 weeks.</p>
+    </div>
+  </section>
+</div>
+<div id="tip" hidden></div>
+
+<script>
+(function(){
+"use strict";
+/* ---------------- data ---------------- */
+const REGIONS={US:"United States",CA:"Canada",CAR:"Mexico, Caribbean & Central America",SA:"South America",EU:"Europe",ME:"Middle East",IN:"South Asia",EA:"East Asia",SEA:"Southeast Asia",OC:"Oceania",AF:"Africa"};
+// code, city, country, region, lat, lon, size (L = large hub, M = mid-size)
+const AIRPORTS=[
+["ATL","Atlanta","US","US",33.64,-84.43,"L"],["DFW","Dallas/Fort Worth","US","US",32.90,-97.04,"L"],["DEN","Denver","US","US",39.86,-104.67,"L"],
+["ORD","Chicago","US","US",41.98,-87.90,"L"],["LAX","Los Angeles","US","US",33.94,-118.41,"L"],["JFK","New York","US","US",40.64,-73.78,"L"],
+["SFO","San Francisco","US","US",37.62,-122.38,"L"],["SEA","Seattle","US","US",47.45,-122.31,"L"],["LAS","Las Vegas","US","US",36.08,-115.15,"L"],
+["MCO","Orlando","US","US",28.43,-81.31,"L"],["MIA","Miami","US","US",25.79,-80.29,"L"],["FLL","Fort Lauderdale","US","US",26.07,-80.15,"L"],
+["IAH","Houston","US","US",29.99,-95.34,"L"],["PHX","Phoenix","US","US",33.43,-112.01,"L"],["BOS","Boston","US","US",42.37,-71.01,"L"],
+["MSP","Minneapolis","US","US",44.88,-93.22,"L"],["DTW","Detroit","US","US",42.21,-83.35,"L"],["CLT","Charlotte","US","US",35.21,-80.94,"L"],
+["PHL","Philadelphia","US","US",39.87,-75.24,"L"],["IAD","Washington, D.C.","US","US",38.95,-77.46,"L"],["SLC","Salt Lake City","US","US",40.79,-111.98,"L"],
+["HNL","Honolulu","US","US",21.32,-157.92,"L"],["SAN","San Diego","US","US",32.73,-117.19,"M"],["AUS","Austin","US","US",30.19,-97.67,"M"],
+["BNA","Nashville","US","US",36.12,-86.68,"M"],["MSY","New Orleans","US","US",29.99,-90.26,"M"],["TPA","Tampa","US","US",27.98,-82.53,"M"],
+["PDX","Portland","US","US",45.59,-122.60,"M"],["ANC","Anchorage","US","US",61.17,-149.99,"M"],["MCI","Kansas City","US","US",39.30,-94.71,"M"],
+["STL","St. Louis","US","US",38.75,-90.37,"M"],["OKC","Oklahoma City","US","US",35.39,-97.60,"M"],["TUL","Tulsa","US","US",36.20,-95.89,"M"],
+["SJU","San Juan","US","CAR",18.44,-66.00,"M"],
+["YYZ","Toronto","CA","CA",43.68,-79.63,"L"],["YVR","Vancouver","CA","CA",49.19,-123.18,"L"],["YUL","Montréal","CA","CA",45.47,-73.74,"L"],
+["CUN","Cancún","MX","CAR",21.04,-86.87,"L"],["MEX","Mexico City","MX","CAR",19.44,-99.07,"L"],["PVR","Puerto Vallarta","MX","CAR",20.68,-105.25,"M"],
+["MBJ","Montego Bay","JM","CAR",18.50,-77.91,"M"],["PUJ","Punta Cana","DO","CAR",18.57,-68.36,"M"],["NAS","Nassau","BS","CAR",25.04,-77.47,"M"],
+["SJO","San José, Costa Rica","CR","CAR",9.99,-84.20,"M"],["PTY","Panama City","PA","CAR",9.07,-79.38,"L"],
+["BOG","Bogotá","CO","SA",4.70,-74.15,"L"],["LIM","Lima","PE","SA",-12.02,-77.11,"L"],["GRU","São Paulo","BR","SA",-23.43,-46.47,"L"],
+["GIG","Rio de Janeiro","BR","SA",-22.81,-43.25,"M"],["EZE","Buenos Aires","AR","SA",-34.82,-58.54,"L"],["SCL","Santiago","CL","SA",-33.39,-70.79,"L"],
+["LHR","London","GB","EU",51.47,-0.45,"L"],["CDG","Paris","FR","EU",49.01,2.55,"L"],["FRA","Frankfurt","DE","EU",50.03,8.56,"L"],
+["AMS","Amsterdam","NL","EU",52.31,4.76,"L"],["MAD","Madrid","ES","EU",40.49,-3.57,"L"],["BCN","Barcelona","ES","EU",41.30,2.08,"L"],
+["FCO","Rome","IT","EU",41.80,12.25,"L"],["DUB","Dublin","IE","EU",53.42,-6.27,"L"],["KEF","Reykjavík","IS","EU",63.98,-22.61,"M"],
+["LIS","Lisbon","PT","EU",38.77,-9.13,"L"],["MUC","Munich","DE","EU",48.35,11.79,"L"],["ZRH","Zurich","CH","EU",47.46,8.55,"L"],
+["ATH","Athens","GR","EU",37.94,23.94,"M"],["PRG","Prague","CZ","EU",50.10,14.26,"M"],["CPH","Copenhagen","DK","EU",55.62,12.65,"M"],
+["IST","Istanbul","TR","EU",41.26,28.74,"L"],
+["DXB","Dubai","AE","ME",25.25,55.36,"L"],["DOH","Doha","QA","ME",25.27,51.61,"L"],["TLV","Tel Aviv","IL","ME",32.01,34.89,"M"],
+["DEL","Delhi","IN","IN",28.56,77.10,"L"],["BOM","Mumbai","IN","IN",19.09,72.87,"L"],
+["HND","Tokyo","JP","EA",35.55,139.78,"L"],["KIX","Osaka","JP","EA",34.43,135.23,"M"],["ICN","Seoul","KR","EA",37.46,126.44,"L"],
+["HKG","Hong Kong","HK","EA",22.31,113.91,"L"],["TPE","Taipei","TW","EA",25.08,121.23,"L"],["PVG","Shanghai","CN","EA",31.14,121.81,"L"],
+["SIN","Singapore","SG","SEA",1.36,103.99,"L"],["BKK","Bangkok","TH","SEA",13.69,100.75,"L"],["MNL","Manila","PH","SEA",14.51,121.02,"L"],
+["SGN","Ho Chi Minh City","VN","SEA",10.82,106.66,"M"],["DPS","Bali","ID","SEA",-8.75,115.17,"M"],
+["SYD","Sydney","AU","OC",-33.95,151.18,"L"],["MEL","Melbourne","AU","OC",-37.67,144.84,"L"],["AKL","Auckland","NZ","OC",-37.01,174.79,"L"],
+["NAN","Nadi, Fiji","FJ","OC",-17.76,177.44,"M"],
+["JNB","Johannesburg","ZA","AF",-26.14,28.24,"L"],["CPT","Cape Town","ZA","AF",-33.97,18.60,"M"],["CAI","Cairo","EG","AF",30.12,31.41,"L"],
+["NBO","Nairobi","KE","AF",-1.32,36.93,"M"],["ADD","Addis Ababa","ET","AF",8.98,38.80,"L"],["CMN","Casablanca","MA","AF",33.37,-7.59,"M"],
+["ACC","Accra","GH","AF",5.61,-0.17,"M"]
+];
+const AP={};AIRPORTS.forEach(a=>{AP[a[0]]={code:a[0],city:a[1],country:a[2],region:a[3],lat:a[4],lon:a[5],size:a[6]};});
+// Airports where we know exactly which US airlines fly; foreign airlines reach them only through a partner connection.
+const SERVED={OKC:["AA","DL","UA","WN","AS","F9","G4"],TUL:["AA","DL","UA","WN","G4"]};
+const ALL=Object.keys(REGIONS);
+// k: legacy | premium | lcc | ulcc | budgetlong. f = price level vs. a legacy carrier.
+const AIRLINES=[
+{c:"AA",n:"American",k:"legacy",home:"US",hubs:["DFW","CLT","ORD","MIA","PHL","PHX","JFK","LAX"],serves:["US","CA","CAR","SA","EU","EA","IN","OC"],conn:true,f:1.0},
+{c:"DL",n:"Delta",k:"legacy",home:"US",hubs:["ATL","MSP","DTW","SLC","SEA","JFK","LAX","BOS"],serves:["US","CA","CAR","SA","EU","EA","IN","AF","OC","ME"],conn:true,f:1.02},
+{c:"UA",n:"United",k:"legacy",home:"US",hubs:["ORD","DEN","IAH","IAD","SFO","LAX"],serves:ALL,conn:true,f:1.0},
+{c:"AS",n:"Alaska",k:"legacy",home:"US",hubs:["SEA","PDX","SFO","ANC","HNL","SAN"],serves:["US","CA","CAR","EU","EA"],conn:false,f:0.95},
+{c:"WN",n:"Southwest",k:"lcc",home:"US",hubs:["DEN","LAS","PHX","BNA","AUS","MCO"],serves:["US","CAR"],conn:false,f:0.9},
+{c:"B6",n:"JetBlue",k:"lcc",home:"US",hubs:["JFK","BOS","FLL"],serves:["US","CAR","EU"],conn:false,f:0.92},
+{c:"NK",n:"Spirit",k:"ulcc",home:"US",hubs:["FLL","LAS","MCO","DTW"],serves:["US","CAR"],conn:false,f:0.7},
+{c:"F9",n:"Frontier",k:"ulcc",home:"US",hubs:["DEN","LAS","MCO","ATL","PHL"],serves:["US","CAR"],conn:false,f:0.7},
+{c:"G4",n:"Allegiant",k:"ulcc",home:"US",hubs:[],st:["LAS","PHX","MCO","TPA","FLL","LAX","SAN","AUS","BNA","MSY","OKC","TUL","MCI","STL"],serves:["US"],conn:false,f:0.72},
+{c:"SY",n:"Sun Country",k:"ulcc",home:"US",hubs:["MSP"],serves:["US","CAR"],conn:false,f:0.8},
+{c:"AC",n:"Air Canada",k:"legacy",home:"CA",hubs:["YYZ","YVR","YUL"],serves:["US","CA","CAR","SA","EU","EA","IN","ME","OC"],conn:true,f:1.02},
+{c:"WS",n:"WestJet",k:"lcc",home:"CA",hubs:["YYZ","YVR"],serves:["US","CA","CAR","EU"],conn:false,f:0.9},
+{c:"AM",n:"Aeroméxico",k:"legacy",home:"CAR",hubs:["MEX"],serves:["US","CA","CAR","SA","EU","EA"],conn:true,f:0.95},
+{c:"Y4",n:"Volaris",k:"ulcc",home:"CAR",hubs:["MEX","CUN"],serves:["US","CAR"],conn:false,f:0.72},
+{c:"CM",n:"Copa",k:"legacy",home:"CAR",hubs:["PTY"],serves:["US","CA","CAR","SA"],conn:true,f:0.95},
+{c:"AV",n:"Avianca",k:"legacy",home:"SA",hubs:["BOG"],serves:["US","CA","CAR","SA","EU"],conn:true,f:0.9},
+{c:"LA",n:"LATAM",k:"legacy",home:"SA",hubs:["LIM","GRU","SCL"],serves:["US","CAR","SA","EU","OC"],conn:true,f:0.95},
+{c:"BA",n:"British Airways",k:"legacy",home:"EU",hubs:["LHR"],serves:["US","CA","CAR","SA","EU","ME","IN","EA","SEA","AF"],conn:true,f:1.04},
+{c:"VS",n:"Virgin Atlantic",k:"legacy",home:"EU",hubs:["LHR"],serves:["US","CAR","EU","IN","AF"],conn:false,f:1.0},
+{c:"LH",n:"Lufthansa",k:"legacy",home:"EU",hubs:["FRA","MUC"],serves:ALL,conn:true,f:1.03},
+{c:"AF",n:"Air France",k:"legacy",home:"EU",hubs:["CDG"],serves:ALL,conn:true,f:1.0},
+{c:"KL",n:"KLM",k:"legacy",home:"EU",hubs:["AMS"],serves:ALL,conn:true,f:0.99},
+{c:"IB",n:"Iberia",k:"legacy",home:"EU",hubs:["MAD"],serves:["US","CAR","SA","EU"],conn:true,f:0.94},
+{c:"EI",n:"Aer Lingus",k:"legacy",home:"EU",hubs:["DUB"],serves:["US","CA","EU"],conn:true,f:0.93},
+{c:"FI",n:"Icelandair",k:"budgetlong",home:"EU",hubs:["KEF"],serves:["US","CA","EU"],conn:true,f:0.82},
+{c:"TP",n:"TAP Air Portugal",k:"legacy",home:"EU",hubs:["LIS"],serves:["US","CA","SA","EU","AF"],conn:true,f:0.9},
+{c:"N0",n:"Norse Atlantic",k:"budgetlong",home:"EU",hubs:[],st:["JFK","LAX","MCO","LHR","CDG","ATH","FCO"],serves:["US","EU"],conn:false,f:0.72},
+{c:"TK",n:"Turkish Airlines",k:"legacy",home:"EU",hubs:["IST"],serves:ALL,conn:true,f:0.95},
+{c:"EK",n:"Emirates",k:"premium",home:"ME",hubs:["DXB"],serves:ALL,conn:true,f:1.05},
+{c:"QR",n:"Qatar Airways",k:"premium",home:"ME",hubs:["DOH"],serves:ALL,conn:true,f:1.03},
+{c:"AI",n:"Air India",k:"legacy",home:"IN",hubs:["DEL","BOM"],serves:["US","CA","EU","ME","IN","EA","SEA","OC","AF"],conn:true,f:0.92},
+{c:"JL",n:"Japan Airlines",k:"legacy",home:"EA",hubs:["HND"],serves:["US","CA","EU","EA","SEA","OC","IN"],conn:true,f:1.02},
+{c:"NH",n:"ANA",k:"legacy",home:"EA",hubs:["HND"],serves:["US","CA","EU","EA","SEA","OC","IN"],conn:true,f:1.02},
+{c:"KE",n:"Korean Air",k:"legacy",home:"EA",hubs:["ICN"],serves:["US","CA","EU","EA","SEA","OC","ME"],conn:true,f:0.98},
+{c:"CX",n:"Cathay Pacific",k:"premium",home:"EA",hubs:["HKG"],serves:["US","CA","EU","EA","SEA","OC","IN","ME","AF"],conn:true,f:1.0},
+{c:"BR",n:"EVA Air",k:"legacy",home:"EA",hubs:["TPE"],serves:["US","CA","EU","EA","SEA","OC"],conn:true,f:0.95},
+{c:"ZG",n:"ZIPAIR",k:"budgetlong",home:"EA",hubs:[],st:["HND","LAX","SFO","HNL","IAH","YVR","ICN","BKK","SIN","MNL"],serves:["US","CA","EA","SEA"],conn:false,f:0.68},
+{c:"SQ",n:"Singapore Airlines",k:"premium",home:"SEA",hubs:["SIN"],serves:["US","EU","EA","SEA","OC","IN","ME","AF"],conn:true,f:1.08},
+{c:"PR",n:"Philippine Airlines",k:"legacy",home:"SEA",hubs:["MNL"],serves:["US","CA","EA","SEA","OC","ME"],conn:true,f:0.9},
+{c:"QF",n:"Qantas",k:"premium",home:"OC",hubs:["SYD","MEL"],serves:["US","CA","EU","OC","EA","SEA","IN","AF"],conn:true,f:1.05},
+{c:"NZ",n:"Air New Zealand",k:"legacy",home:"OC",hubs:["AKL"],serves:["US","CA","OC","EA","SEA"],conn:true,f:1.0},
+{c:"FJ",n:"Fiji Airways",k:"legacy",home:"OC",hubs:["NAN"],serves:["US","CA","OC"],conn:true,f:0.9},
+{c:"ET",n:"Ethiopian",k:"legacy",home:"AF",hubs:["ADD"],serves:["US","CA","EU","ME","IN","EA","AF","SA"],conn:true,f:0.93},
+{c:"AT",n:"Royal Air Maroc",k:"legacy",home:"AF",hubs:["CMN"],serves:["US","CA","EU","AF","SA"],conn:true,f:0.88}
+];
+
+/* ---------------- helpers ---------------- */
+const DAY=864e5;
+const _n=new Date();
+const TODAY=Math.floor(Date.UTC(_n.getFullYear(),_n.getMonth(),_n.getDate())/DAY);
+const MON=["Jan","Feb","Mar","Apr","May","Jun","Jul","Aug","Sep","Oct","Nov","Dec"];
+const MONL=["January","February","March","April","May","June","July","August","September","October","November","December"];
+const WD=["Sun","Mon","Tue","Wed","Thu","Fri","Sat"];
+const WDL=["Sunday","Monday","Tuesday","Wednesday","Thursday","Friday","Saturday"];
+function ymd(n){const d=new Date(n*DAY);return{y:d.getUTCFullYear(),m:d.getUTCMonth(),d:d.getUTCDate(),w:d.getUTCDay()};}
+function dayOf(y,m,d){return Math.floor(Date.UTC(y,m,d)/DAY);}
+function iso(n){return new Date(n*DAY).toISOString().slice(0,10);}
+function fmtD(n,year){const t=ymd(n);return WD[t.w]+", "+MON[t.m]+" "+t.d+(year?", "+t.y:"");}
+function money(v){return "$"+Math.round(v).toLocaleString("en-US");}
+function esc(s){return String(s).replace(/[&<>"]/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]));}
+function hash(s){let h=2166136261>>>0;for(let i=0;i<s.length;i++){h^=s.charCodeAt(i);h=Math.imul(h,16777619);}h^=h>>>13;h=Math.imul(h,0x5bd1e995);h^=h>>>15;return(h>>>0)/4294967296;}
+function miles(a,b){const R=3958.8,r=Math.PI/180;const dl=(b.lat-a.lat)*r,dn=(b.lon-a.lon)*r;
+  const x=Math.sin(dl/2)**2+Math.cos(a.lat*r)*Math.cos(b.lat*r)*Math.sin(dn/2)**2;return 2*R*Math.asin(Math.sqrt(x));}
+function median(a){if(!a.length)return NaN;const s=[...a].sort((x,y)=>x-y);const m=s.length>>1;return s.length%2?s[m]:(s[m-1]+s[m])/2;}
+function quantile(s,q){const i=(s.length-1)*q,lo=Math.floor(i),hi=Math.ceil(i);return s[lo]+(s[hi]-s[lo])*(i-lo);}
+function lerpPts(pts,x){if(x<=pts[0][0])return pts[0][1];for(let i=1;i<pts.length;i++){if(x<=pts[i][0]){const[a,b]=[pts[i-1],pts[i]];return a[1]+(b[1]-a[1])*(x-a[0])/(b[0]-a[0]);}}return pts[pts.length-1][1];}
+function isDom(o,d){return o.country==="US"&&d.country==="US";}
+
+/* ---------------- fare model ---------------- */
+const SEASON={
+ US:[.82,.85,1.05,.98,1.0,1.18,1.2,.95,.85,.9,1.0,1.15],
+ CA:[.8,.82,.95,.95,1.02,1.2,1.28,1.15,.92,.9,.88,1.12],
+ CAR:[1.1,1.15,1.25,1.0,.9,.95,1.0,.85,.75,.8,.9,1.3],
+ SA:[1.2,1.1,.95,.85,.82,.9,1.05,.9,.88,.92,.95,1.25],
+ EU:[.78,.8,.9,1.0,1.08,1.3,1.35,1.2,1.0,.92,.82,1.05],
+ ME:[1.0,.95,.95,.9,.85,.95,1.1,1.05,.85,.95,1.0,1.15],
+ IN:[.95,.85,.85,.95,1.1,1.1,.95,.95,.85,1.0,1.1,1.3],
+ EA:[.95,.9,1.05,1.1,.95,1.1,1.25,1.2,.9,1.0,.88,1.1],
+ SEA:[1.05,1.0,.95,.95,.85,1.0,1.1,1.05,.82,.85,.95,1.2],
+ OC:[1.15,.95,.9,.9,.82,.85,.95,.88,.9,.98,1.05,1.3],
+ AF:[1.0,.9,.9,.95,.85,1.1,1.25,1.2,.95,.9,.9,1.2]
+};
+const FL=[1.12,1.2,1.25,1.0,.88,.95,1.0,.85,.72,.82,.95,1.2];
+const SEASON_AP={HNL:[1.05,.95,1.05,.95,.9,1.15,1.25,1.1,.8,.85,.95,1.3],ANC:[.7,.7,.8,.9,1.15,1.5,1.55,1.3,.9,.72,.7,.85],
+  MCO:FL,FLL:FL,MIA:FL,TPA:FL,LAS:[.95,1.0,1.02,1.0,.98,1.0,.98,.95,.95,1.0,1.0,1.05]};
+const DOW=[1.10,1.02,0.90,0.91,1.05,1.12,0.95];
+const BOOK_DOM=[[0,1.6],[7,1.35],[14,1.18],[21,1.05],[30,.97],[45,.93],[60,.93],[90,.97],[120,1.01],[180,1.05],[365,1.08]];
+const BOOK_INTL=[[0,1.7],[7,1.45],[14,1.28],[30,1.12],[60,1.0],[90,.95],[120,.93],[150,.94],[200,.98],[270,1.03],[365,1.06]];
+const REGION_F={AF:1.3,OC:1.15,SA:1.1,IN:1.05,ME:1.0,EA:1.0,SEA:1.0,EU:1.0,CAR:.95,CA:1.1,US:1.0};
+const LNY={2026:dayOf(2026,1,17),2027:dayOf(2027,1,6),2028:dayOf(2028,0,26)};
+const SUN=new Set(["MCO","FLL","MIA","TPA","CUN","PVR","MBJ","PUJ","NAS","SJU","SJO"]);
+
+const holCache={};
+function holidays(y){
+  if(holCache[y])return holCache[y];
+  const map=new Map();const set=(n,f)=>map.set(n,Math.max(map.get(n)||1,f));
+  const nov1=dayOf(y,10,1);const T=nov1+((4-ymd(nov1).w+7)%7)+21;
+  [[-3,1.12],[-2,1.28],[-1,1.4],[0,1.08],[2,1.12],[3,1.45],[4,1.22]].forEach(([k,f])=>set(T+k,f));
+  for(let d=18;d<=23;d++)set(dayOf(y,11,d),1.35);
+  set(dayOf(y,11,24),1.12);set(dayOf(y,11,25),1.05);
+  for(let d=26;d<=31;d++)set(dayOf(y,11,d),1.3);
+  for(let d=1;d<=4;d++)set(dayOf(y,0,d),1.3);
+  for(let d=5;d<=7;d++)set(dayOf(y,0,d),1.1);
+  set(dayOf(y,5,30),1.12);for(let d=1;d<=6;d++)set(dayOf(y,6,d),1.12);
+  const may31=dayOf(y,4,31);const mem=may31-((ymd(may31).w-1+7)%7);for(let k=-3;k<=0;k++)set(mem+k,1.1);
+  const sep1=dayOf(y,8,1);const lab=sep1+((1-ymd(sep1).w+7)%7);for(let k=-3;k<=0;k++)set(lab+k,1.1);
+  return holCache[y]={map,spring:[dayOf(y,2,7),dayOf(y,2,29)]};
+}
+function holidayMult(o,d,day){
+  let f=1;const t=ymd(day);
+  if(o.country==="US"||d.country==="US"){
+    const h=holidays(t.y);f*=h.map.get(day)||1;
+    if(day>=h.spring[0]&&day<=h.spring[1])f*=(SUN.has(d.code)||SUN.has(o.code))?1.22:1.06;
+  }
+  if(["EA","SEA"].includes(o.region)||["EA","SEA"].includes(d.region)){const l=LNY[t.y];if(l&&Math.abs(day-l)<=6)f*=1.2;}
+  if((d.code==="HND"||d.code==="KIX"||o.code==="HND"||o.code==="KIX")&&((t.m===3&&t.d>=29)||(t.m===4&&t.d<=5)))f*=1.2;
+  return f;
+}
+function seasonMult(o,d,day){
+  let curve=SEASON_AP[d.code]||SEASON_AP[o.code];
+  if(!curve){const r=o.region==="US"?d.region:(d.region==="US"?o.region:d.region);curve=SEASON[r]||SEASON.US;}
+  const t=ymd(day);const x=t.m+(t.d-15)/30.4;const i0=((Math.floor(x)%12)+12)%12,i1=(i0+1)%12,fr=x-Math.floor(x);
+  return curve[i0]+(curve[i1]-curve[i0])*fr;
+}
+function baseFare(o,d,dist){
+  let b;
+  if(isDom(o,d)){b=45+0.12*dist-0.000008*dist*dist;}
+  else{
+    b=110+0.068*dist;
+    if(o.region===d.region)b*=0.65;
+    else b*=Math.max(REGION_F[o.region]||1,REGION_F[d.region]||1);
+  }
+  if(o.size==="M")b*=1.08;if(d.size==="M")b*=1.08;
+  return b;
+}
+function longHaul(o,d,dist){return !isDom(o,d)&&dist>1800;}
+
+const routeCache=new Map();
+function routeOptions(oc,dc){
+  const key=oc+dc;if(routeCache.has(key))return routeCache.get(key);
+  const o=AP[oc],d=AP[dc];const dist=miles(o,d);const dom=isDom(o,d);const out=[];
+  if(dist>=150){
+    for(const a of AIRLINES){
+      if(dom&&a.home!=="US")continue;
+      if(!a.serves.includes(o.region)||!a.serves.includes(d.region))continue;
+      if(a.st){ if(!(a.st.includes(oc)&&a.st.includes(dc)))continue; if(a.k==="budgetlong"&&o.region===d.region)continue; }
+      const homeIn=a.home===o.region||a.home===d.region||(a.home==="US"&&(o.country==="US"||d.country==="US"));
+      let ok=true,extra=0;
+      for(const p of [o,d]){
+        const wl=SERVED[p.code];
+        if(wl){ if(!wl.includes(a.c)){ if(a.home==="US"||a.k==="lcc"||a.k==="ulcc"||a.k==="budgetlong")ok=false; else extra=1; } }
+        else if(p.size==="M"&&!a.st&&!a.hubs.includes(p.code)&&(a.k==="lcc"||a.k==="ulcc")&&hash(a.c+p.code)>0.55)ok=false;
+      }
+      if(!ok)continue;
+      const hO=a.hubs.includes(oc),hD=a.hubs.includes(dc);
+      let stops=1,via=null,flown=dist;
+      if(a.st)stops=0;
+      else if(hO&&hD)stops=0;
+      else if(hO||hD){
+        const other=hO?d:o;const r=hash(a.c+oc+dc+"ns");
+        if(extra)stops=0;
+        else if(dist>8800)stops=1;
+        else if(other.size==="L")stops=r<0.85?0:1;
+        else if(dom&&dist<2200)stops=r<0.9?0:1;
+        else stops=r<0.35?0:1;
+        if(stops){flown=dist*1.12;}
+      } else if(a.k==="lcc"||a.k==="ulcc"){
+        stops=(dist<2600&&hash(a.c+[oc,dc].sort().join(""))<0.45)?0:1;
+      }
+      if(stops>0&&!(hO||hD)){
+        let best=null,bd=Infinity;
+        for(const h of a.hubs){if(h===oc||h===dc)continue;const v=miles(o,AP[h])+miles(AP[h],d);if(v<bd){bd=v;best=h;}}
+        if(!best)continue;
+        const limit=homeIn?1.5:1.3;
+        if(bd/dist>limit)continue;
+        via=best;flown=bd;
+      }
+      if(!homeIn&&!a.conn)continue;
+      if(!homeIn&&stops===0&&!a.st)continue;
+      if(a.k==="ulcc"&&a.c==="G4"&&stops>0)continue;
+      stops+=extra;if(stops>2)continue;
+      const hours=flown/470+0.5+stops*1.7;
+      out.push({a,stops,via,partner:!!extra,flown,hours,dist});
+    }
+  }
+  routeCache.set(key,out);return out;
+}
+function legFare(opt,o,d,day,cabin,ahead){
+  const a=opt.a,dist=opt.dist,dom=isDom(o,d),lh=longHaul(o,d,dist);
+  const bk=lerpPts(lh?BOOK_INTL:BOOK_DOM,Math.max(0,ahead));
+  let dow=DOW[ymd(day).w];if(lh)dow=1+(dow-1)*0.5;
+  const n1=0.93+0.14*hash(a.c+o.code+d.code+day);
+  const n2=0.95+0.10*hash(o.code+d.code+day);
+  const sale=hash("s"+a.c+o.code+d.code+Math.floor(day/3))<0.05?0.86:1;
+  const stopF=[1.08,1,0.97][opt.stops];
+  const cab=cabin==="premium"?1.7:cabin==="business"?(dom?2.5:4.0):1;
+  const p=baseFare(o,d,dist)*a.f*stopF*seasonMult(o,d,day)*holidayMult(o,d,day)*dow*bk*n1*n2*sale*cab;
+  return Math.max(dom?39:59,p);
+}
+function bagFee(opt,o,d,cabin){
+  if(cabin!=="economy")return 0;
+  const k=opt.a.k;
+  if(longHaul(o,d,opt.dist))return(k==="budgetlong")?75:0;
+  if(k==="ulcc")return 75;
+  return 35;
+}
+// Per-traveler price for one option. ahead overrides days-before-departure (for the booking curve).
+function tripPrice(opt,o,d,day,q,ahead){
+  const a0=ahead==null?day-TODAY:ahead;
+  const out=legFare(opt,o,d,day,q.cabin,a0);
+  const bag=q.bags?bagFee(opt,o,d,q.cabin):0;
+  if(q.trip==="ow"){
+    const ow=(longHaul(o,d,opt.dist)&&(opt.a.k==="legacy"||opt.a.k==="premium"))?1.45:1;
+    return {fare:out*ow,bags:bag,total:out*ow+bag};
+  }
+  const back=legFare(opt,d,o,day+q.nights,q.cabin,a0+q.nights);
+  return {fare:out+back,bags:bag*2,total:out+back+bag*2};
+}
+
+/* ---------------- query state ---------------- */
+const $=id=>document.getElementById(id);
+const els={from:$("from"),to:$("to"),trip:$("trip"),nights:$("nights"),trav:$("trav"),win:$("win"),cabin:$("cabin"),bags:$("bags"),nonstop:$("nonstop"),err:$("err")};
+const labelOf=c=>c+" — "+AP[c].city;
+$("aplist").innerHTML=AIRPORTS.slice().sort((a,b)=>a[1].localeCompare(b[1])).map(a=>`<option value="${esc(labelOf(a[0]))}">${esc(REGIONS[a[3]])}</option>`).join("");
+
+// travel window options
+(function(){
+  const t=ymd(TODAY);const opts=[`<option value="all">Anytime in the next 12 months</option>`,`<option value="3">Next 3 months</option>`,`<option value="6">Next 6 months</option>`];
+  for(let i=0;i<12;i++){const m=(t.m+i)%12,y=t.y+Math.floor((t.m+i)/12);opts.push(`<option value="m${y}-${m}">${MONL[m]} ${y}</option>`);}
+  els.win.innerHTML=opts.join("");
+})();
+function windowRange(v){
+  const start=TODAY+1;
+  if(v==="3")return[start,TODAY+91];
+  if(v==="6")return[start,TODAY+182];
+  if(v&&v[0]==="m"){const[y,m]=v.slice(1).split("-").map(Number);return[Math.max(start,dayOf(y,m,1)),dayOf(y,m+1,0)];}
+  return[start,TODAY+365];
+}
+function parseAirport(s){
+  s=(s||"").trim();if(!s)return null;
+  const c=s.slice(0,3).toUpperCase();if(AP[c]&&(s.length===3||/^[A-Za-z]{3}\b/.test(s)))return c;
+  const low=s.toLowerCase();
+  const hit=AIRPORTS.find(a=>a[1].toLowerCase()===low)||AIRPORTS.find(a=>a[1].toLowerCase().startsWith(low));
+  return hit?hit[0]:null;
+}
+function readQuery(){
+  const n=Math.min(45,Math.max(1,parseInt(els.nights.value,10)||7));
+  return{from:parseAirport(els.from.value),to:parseAirport(els.to.value),trip:els.trip.value,nights:n,trav:+els.trav.value,
+    win:els.win.value,cabin:els.cabin.value,bags:els.bags.checked,nonstop:els.nonstop.checked};
+}
+const store={get(k){try{return JSON.parse(localStorage.getItem(k));}catch(e){return null;}},set(k,v){try{localStorage.setItem(k,JSON.stringify(v));}catch(e){}}};
+(function restore(){
+  const s=store.get("fare-almanac-q");if(!s)return;
+  if(s.from&&AP[s.from])els.from.value=labelOf(s.from);
+  if(s.to&&AP[s.to])els.to.value=labelOf(s.to);
+  if(s.trip)els.trip.value=s.trip; if(s.nights)els.nights.value=s.nights; if(s.trav)els.trav.value=s.trav;
+  if(s.cabin)els.cabin.value=s.cabin; if(typeof s.bags==="boolean")els.bags.checked=s.bags; if(typeof s.nonstop==="boolean")els.nonstop.checked=s.nonstop;
+})();
+
+let view="route",selDay=null,lastKey="";
+
+/* ---------------- compute route ---------------- */
+function computeRoute(q){
+  const o=AP[q.from],d=AP[q.to];
+  let opts=routeOptions(q.from,q.to);if(q.nonstop)opts=opts.filter(x=>x.stops===0);
+  const [s,e]=windowRange(q.win);
+  const days=[];const per=new Map(opts.map(x=>[x.a.c,[]]));
+  for(let day=s;day<=e;day++){
+    let best=null;
+    for(const opt of opts){const p=tripPrice(opt,o,d,day,q);per.get(opt.a.c).push({day,p:p.total});if(!best||p.total<best.total)best={...p,opt};}
+    if(best)days.push({day,price:best.total,opt:best.opt});
+  }
+  return{o,d,opts,days,per,s,e};
+}
+
+/* ---------------- charts ---------------- */
+function niceTicks(lo,hi,n){
+  const span=hi-lo||1;const step0=span/n;const mag=Math.pow(10,Math.floor(Math.log10(step0)));
+  const step=[1,2,2.5,5,10].map(x=>x*mag).find(x=>x>=step0);
+  const out=[];for(let v=Math.floor(lo/step)*step;v<=hi+1e-9;v+=step)out.push(v);return out;
+}
+function widthOf(el){return Math.max(280,Math.round(el.clientWidth||600));}
+function barChart(el,items,opts){
+  // items: [{label, value, tip, hi}]
+  const W=widthOf(el),H=opts.h||220,m={t:22,r:8,b:26,l:46};
+  const vals=items.map(i=>i.value);const max=Math.max(...vals);const lo=0;
+  const ticks=niceTicks(lo,max*1.08,4);const top=ticks[ticks.length-1];
+  const iw=W-m.l-m.r,ih=H-m.t-m.b;const bw=iw/items.length;const gap=Math.min(10,bw*0.28);
+  const y=v=>m.t+ih-(v-lo)/(top-lo)*ih;
+  let g="";
+  ticks.forEach(t=>{g+=`<line x1="${m.l}" x2="${W-m.r}" y1="${y(t)}" y2="${y(t)}" stroke="var(--grid)" stroke-width="1"/><text x="${m.l-8}" y="${y(t)+4}" text-anchor="end">${money(t)}</text>`;});
+  items.forEach((it,i)=>{
+    const x=m.l+i*bw+gap/2,w=bw-gap,yy=y(it.value),h=m.t+ih-yy;const r=Math.min(4,w/2);
+    g+=`<path d="M${x},${m.t+ih}V${yy+r}Q${x},${yy} ${x+r},${yy}H${x+w-r}Q${x+w},${yy} ${x+w},${yy+r}V${m.t+ih}Z" fill="${it.hi?"var(--bar-hi)":"var(--bar)"}"/>`;
+    if(it.hi||opts.labelAll)g+=`<text class="val" x="${x+w/2}" y="${yy-6}" text-anchor="middle">${money(it.value)}</text>`;
+    g+=`<text class="lab" x="${x+w/2}" y="${H-8}" text-anchor="middle">${esc(it.label)}</text>`;
+    g+=`<rect class="hit" x="${m.l+i*bw}" y="${m.t}" width="${bw}" height="${ih}" data-tip="${esc(it.tip)}"/>`;
+  });
+  g+=`<line x1="${m.l}" x2="${W-m.r}" y1="${m.t+ih}" y2="${m.t+ih}" stroke="var(--line)" stroke-width="1"/>`;
+  el.innerHTML=`<svg viewBox="0 0 ${W} ${H}" role="img" aria-label="${esc(opts.aria)}">${g}</svg>`;
+}
+function airlineChart(el,rows){
+  const W=widthOf(el),rowH=30,m={t:8,r:58,b:24,l:Math.min(150,W*0.36)};const H=m.t+m.b+rows.length*rowH;
+  const max=Math.max(...rows.map(r=>r.med));const ticks=niceTicks(0,max*1.05,4);const top=ticks[ticks.length-1];
+  const iw=W-m.l-m.r;const x=v=>m.l+v/top*iw;let g="";
+  ticks.forEach(t=>{g+=`<line x1="${x(t)}" x2="${x(t)}" y1="${m.t}" y2="${H-m.b}" stroke="var(--grid)"/><text x="${x(t)}" y="${H-6}" text-anchor="middle">${money(t)}</text>`;});
+  rows.forEach((r,i)=>{
+    const yc=m.t+i*rowH+rowH/2,bh=12,w=Math.max(4,x(r.min)-m.l);
+    g+=`<text class="lab" x="${m.l-10}" y="${yc+4}" text-anchor="end">${esc(r.name)}</text>`;
+    g+=`<path d="M${m.l},${yc-bh/2}H${m.l+w-4}Q${m.l+w},${yc-bh/2} ${m.l+w},${yc-bh/2+4}V${yc+bh/2-4}Q${m.l+w},${yc+bh/2} ${m.l+w-4},${yc+bh/2}H${m.l}Z" fill="${i===0?"var(--bar-hi)":"var(--bar)"}"/>`;
+    g+=`<line x1="${x(r.med)}" x2="${x(r.med)}" y1="${yc-9}" y2="${yc+9}" stroke="var(--ink)" stroke-width="2" stroke-linecap="round"/>`;
+    g+=`<text class="val" x="${Math.max(x(r.med),m.l+w)+8}" y="${yc+4}">${money(r.min)}</text>`;
+    g+=`<rect class="hit" x="0" y="${yc-rowH/2}" width="${W}" height="${rowH}" data-tip="${esc(r.tip)}"/>`;
+  });
+  el.innerHTML=`<svg viewBox="0 0 ${W} ${H}" role="img" aria-label="Lowest and typical fare by airline">${g}</svg>`;
+}
+function bookingChart(el,pts,todayAhead,band){
+  // pts: [{ahead, price}] ahead descending on x from far (left) to 0 (right)
+  const W=widthOf(el),H=230,m={t:20,r:14,b:30,l:50};const maxA=pts[0].ahead;
+  const vals=pts.map(p=>p.price);const lo0=Math.min(...vals),hi0=Math.max(...vals);
+  const ticks=niceTicks(lo0*0.92,hi0*1.03,4);const ylo=ticks[0],yhi=ticks[ticks.length-1];
+  const iw=W-m.l-m.r,ih=H-m.t-m.b;const x=a=>m.l+(maxA-a)/maxA*iw;const y=v=>m.t+ih-(v-ylo)/(yhi-ylo)*ih;
+  let g="";
+  ticks.forEach(t=>{g+=`<line x1="${m.l}" x2="${W-m.r}" y1="${y(t)}" y2="${y(t)}" stroke="var(--grid)"/><text x="${m.l-8}" y="${y(t)+4}" text-anchor="end">${money(t)}</text>`;});
+  if(band)g+=`<rect x="${x(band[1])}" y="${m.t}" width="${x(band[0])-x(band[1])}" height="${ih}" fill="var(--accent-soft)"/><text x="${(x(band[1])+x(band[0]))/2}" y="${m.t-6}" text-anchor="middle" class="lab">Sweet spot</text>`;
+  [300,240,180,120,60,30,0].filter(a=>a<=maxA).forEach(a=>{g+=`<text x="${x(a)}" y="${H-8}" text-anchor="middle">${a===0?"Flight":a+"d"}</text>`;});
+  const line=pts.map((p,i)=>(i?"L":"M")+x(p.ahead).toFixed(1)+","+y(p.price).toFixed(1)).join("");
+  g+=`<path d="${line}L${x(0)},${m.t+ih}L${x(maxA)},${m.t+ih}Z" fill="var(--bar)" opacity=".12"/>`;
+  g+=`<path d="${line}" fill="none" stroke="var(--bar)" stroke-width="2" stroke-linejoin="round"/>`;
+  if(todayAhead!=null&&todayAhead<=maxA){
+    const tx=x(todayAhead);const tp=pts.reduce((b,p)=>Math.abs(p.ahead-todayAhead)<Math.abs(b.ahead-todayAhead)?p:b);
+    g+=`<line x1="${tx}" x2="${tx}" y1="${m.t}" y2="${m.t+ih}" stroke="var(--ink)" stroke-dasharray="3 3"/>`;
+    g+=`<circle cx="${tx}" cy="${y(tp.price)}" r="5" fill="var(--ink)" stroke="var(--surface)" stroke-width="2"/>`;
+    g+=`<text class="val" x="${tx+(tx>W-90?-8:8)}" y="${m.t+ih-8}" text-anchor="${tx>W-90?"end":"start"}">Today</text>`;
+  }
+  g+=`<line x1="${m.l}" x2="${W-m.r}" y1="${m.t+ih}" y2="${m.t+ih}" stroke="var(--line)"/>`;
+  g+=`<line id="xh" x1="0" x2="0" y1="${m.t}" y2="${m.t+ih}" stroke="var(--ink-2)" visibility="hidden"/><circle id="xhd" r="5" fill="var(--bar)" stroke="var(--surface)" stroke-width="2" visibility="hidden"/>`;
+  g+=`<rect class="hit" id="bkhit" x="${m.l}" y="${m.t}" width="${iw}" height="${ih}"/>`;
+  el.innerHTML=`<svg viewBox="0 0 ${W} ${H}" role="img" aria-label="Estimated fare by how many days before the flight you book">${g}</svg>`;
+  const svg=el.querySelector("svg"),hit=el.querySelector("#bkhit"),xh=el.querySelector("#xh"),xd=el.querySelector("#xhd");
+  const move=ev=>{
+    const r=svg.getBoundingClientRect();const px=(ev.clientX-r.left)*W/r.width;
+    const a=maxA-(px-m.l)/iw*maxA;const p=pts.reduce((b,q)=>Math.abs(q.ahead-a)<Math.abs(b.ahead-a)?q:b);
+    xh.setAttribute("x1",x(p.ahead));xh.setAttribute("x2",x(p.ahead));xh.setAttribute("visibility","visible");
+    xd.setAttribute("cx",x(p.ahead));xd.setAttribute("cy",y(p.price));xd.setAttribute("visibility","visible");
+    showTip(`<b>${p.ahead===0?"Day of the flight":p.ahead+" days before"}</b><br>Book ${fmtD(p.bookDay,true)}<br>About ${money(p.price)}`,ev);
+  };
+  hit.addEventListener("pointermove",move);hit.addEventListener("pointerdown",move);
+  hit.addEventListener("pointerleave",()=>{xh.setAttribute("visibility","hidden");xd.setAttribute("visibility","hidden");hideTip();});
+}
+
+/* tooltip */
+const tip=$("tip");
+function showTip(html,ev){tip.innerHTML=html;tip.hidden=false;const pad=14;let x=ev.clientX+pad,y=ev.clientY+pad;const r=tip.getBoundingClientRect();
+  if(x+r.width>innerWidth-8)x=ev.clientX-r.width-pad;if(y+r.height>innerHeight-8)y=ev.clientY-r.height-pad;tip.style.left=Math.max(8,x)+"px";tip.style.top=Math.max(8,y)+"px";}
+function hideTip(){tip.hidden=true;}
+document.addEventListener("pointermove",ev=>{const t=ev.target.closest&&ev.target.closest("[data-tip]");if(t)showTip(t.getAttribute("data-tip"),ev);else if(!(ev.target.id==="bkhit"))hideTip();});
+document.addEventListener("scroll",hideTip,{passive:true});
+
+/* ---------------- render: route ---------------- */
+const PLANE=`<svg class="plane" viewBox="0 0 64 24" aria-hidden="true"><line x1="0" y1="12" x2="44" y2="12" stroke="currentColor" stroke-width="2" stroke-dasharray="4 4"/><path d="M46 12l-6-8h4l9 8-9 8h-4z" fill="currentColor"/><path d="M52 12h10" stroke="currentColor" stroke-width="2"/></svg>`;
+function links(q,dep){
+  const o=q.from,d=q.to,ret=q.trip==="rt"?dep+q.nights:null;
+  const gq=`Flights from ${o} to ${d} on ${iso(dep)}`+(ret?` through ${iso(ret)}`:" one way")+(q.trav>1?` for ${q.trav} adults`:"")+(q.cabin!=="economy"?` ${q.cabin==="premium"?"premium economy":"business class"}`:"");
+  const g="https://www.google.com/travel/flights?q="+encodeURIComponent(gq);
+  const cab={economy:"",premium:"/premium",business:"/business"}[q.cabin];
+  const k=`https://www.kayak.com/flights/${o}-${d}/${iso(dep)}${ret?"/"+iso(ret):""}${cab}${q.trav>1?"/"+q.trav+"adults":""}?sort=price_a`;
+  const sd=n=>iso(n).slice(2).replace(/-/g,"");
+  const s=`https://www.skyscanner.com/transport/flights/${o.toLowerCase()}/${d.toLowerCase()}/${sd(dep)}/${ret?sd(ret)+"/":""}?adultsv2=${q.trav}&cabinclass=${q.cabin==="premium"?"premiumeconomy":q.cabin}`;
+  return `<div class="links"><a class="btn primary" href="${g}" target="_blank" rel="noopener">Check live prices on Google Flights ↗</a><a class="btn" href="${k}" target="_blank" rel="noopener">Kayak ↗</a><a class="btn" href="${s}" target="_blank" rel="noopener">Skyscanner ↗</a></div>`;
+}
+function stopText(o){return o.stops===0?`<span class="stops0">Nonstop</span>`:`${o.stops} stop${o.stops>1?"s":""}${o.via?" · "+o.via:""}${o.partner?" · partner":""}`;}
+function hrs(h){const H=Math.floor(h),M=Math.round((h-H)*60/5)*5;return `${H}h ${String(M%60).padStart(2,"0")}m`;}
+
+let R=null;
+function renderRoute(q){
+  const host=$("view-route");
+  const o=AP[q.from],d=AP[q.to];const dist=miles(o,d);const dom=isDom(o,d);
+  const board=`<div class="board"><div class="codes"><div class="code"><b>${o.code}</b><span>${esc(o.city)}</span></div>${PLANE}<div class="code"><b>${d.code}</b><span>${esc(d.city)}</span></div></div>
+    <div class="facts"><span class="chip ${dom?"":"intl"}">${dom?"Domestic":"International"}</span><span class="chip num">${Math.round(dist).toLocaleString()} mi great-circle</span><span class="chip">${q.trip==="rt"?`Round trip · ${q.nights} night${q.nights>1?"s":""}`:"One way"}</span><span class="chip">${q.trav} traveler${q.trav>1?"s":""} · ${{economy:"Economy",premium:"Premium economy",business:"Business"}[q.cabin]}</span></div></div>`;
+  R=computeRoute(q);
+  if(!R.days.length){
+    const msg=dist<150?`${o.city} and ${d.city} are only ${Math.round(dist)} miles apart, and no airline flies between them. Driving is the way to go.`
+      :q.nonstop?`No airline flies ${o.code} to ${d.code} nonstop. Turn off “Nonstop only” to see connecting options.`:`We don't have airline service modeled for ${o.code} to ${d.code}.`;
+    host.innerHTML=board+`<div class="panel"><p class="empty">${esc(msg)}</p></div>`;return;
+  }
+  const T=q.trav;const days=R.days;
+  const prices=days.map(x=>x.price);const sorted=[...prices].sort((a,b)=>a-b);
+  const cheapest=days.reduce((b,x)=>x.price<b.price?x:b);
+  const typical=median(prices),peak=sorted[sorted.length-1];
+  if(selDay==null||selDay<R.s||selDay>R.e)selDay=cheapest.day;
+  // months
+  const months=new Map();days.forEach(x=>{const t=ymd(x.day);const k=t.y*12+t.m;if(!months.has(k))months.set(k,[]);months.get(k).push(x.price);});
+  const mRows=[...months.entries()].map(([k,v])=>({k,y:Math.floor(k/12),m:k%12,med:median(v),min:Math.min(...v),n:v.length}));
+  const fullMonths=mRows.filter(r=>r.n>=10);const pool=fullMonths.length?fullMonths:mRows;
+  const bestM=pool.reduce((b,r)=>r.med<b.med?r:b),worstM=pool.reduce((b,r)=>r.med>b.med?r:b);
+  // dow
+  const dw=[0,1,2,3,4,5,6].map(w=>{const v=days.filter(x=>ymd(x.day).w===w).map(x=>x.price);return{w,avg:v.reduce((a,b)=>a+b,0)/(v.length||1),n:v.length};}).filter(r=>r.n);
+  const dwSorted=[...dw].sort((a,b)=>a.avg-b.avg);const dwMax=dwSorted[dwSorted.length-1];
+  // booking curve for the selected date
+  const lh=longHaul(o,d,dist);const curve=lh?BOOK_INTL:BOOK_DOM;
+  let minMult=Infinity;for(let a=0;a<=330;a++)minMult=Math.min(minMult,lerpPts(curve,a));
+  let bandLo=null,bandHi=null;for(let a=0;a<=330;a++){if(lerpPts(curve,a)<=minMult*1.025){if(bandLo==null)bandLo=a;bandHi=a;}}
+  const bookText=`${bandLo}–${bandHi} days ahead`;
+  const cheapestAirline=(()=>{const c={};days.forEach(x=>{c[x.opt.a.n]=(c[x.opt.a.n]||0)+1;});return Object.entries(c).sort((a,b)=>b[1]-a[1])[0][0];})();
+
+  const tiles=`<div class="tiles">
+    <div class="tile lead"><span class="eyebrow">Cheapest date to leave</span><span class="big">${money(cheapest.price*T)}</span>
+      <span class="sub">${fmtD(cheapest.day,true)}${q.trip==="rt"?` → ${fmtD(cheapest.day+q.nights)}`:""} on ${esc(cheapest.opt.a.n)}${T>1?` · ${money(cheapest.price)} each`:""}</span></div>
+    <div class="tile"><span class="eyebrow">Cheapest month</span><span class="mid">${MONL[bestM.m]} ${bestM.y}</span>
+      <span class="sub">Typically ${money(bestM.med*T)}, ${Math.round((1-bestM.med/worstM.med)*100)}% less than ${MON[worstM.m]}</span></div>
+    <div class="tile"><span class="eyebrow">Cheapest days to fly out</span><span class="mid">${WDL[dwSorted[0].w]}s</span>
+      <span class="sub">Then ${WDL[dwSorted[1].w]}s. About ${Math.round((1-dwSorted[0].avg/dwMax.avg)*100)}% less than ${WDL[dwMax.w]}s</span></div>
+    <div class="tile"><span class="eyebrow">Best time to book</span><span class="mid">${bookText}</span>
+      <span class="sub">${lh?"Long-haul international":"Domestic and short international"} fares bottom out here</span></div>
+  </div>`;
+
+  // calendar
+  const qs=[1,2,3,4,5].map(i=>quantile(sorted,i/6));
+  const bin=p=>{let b=0;while(b<5&&p>qs[b])b++;return b;};
+  const byDay=new Map(days.map(x=>[x.day,x]));
+  const bestSet=new Set(days.filter(x=>x.price<=quantile(sorted,0.03)).map(x=>x.day));
+  const sY=ymd(R.s),eY=ymd(R.e);let cal="";
+  for(let k=sY.y*12+sY.m;k<=eY.y*12+eY.m;k++){
+    const y=Math.floor(k/12),m=k%12;const first=dayOf(y,m,1),last=dayOf(y,m+1,0);const mr=mRows.find(r=>r.k===k);
+    let cells=WD.map(w=>`<span class="wd">${w[0]}</span>`).join("");
+    for(let i=0;i<ymd(first).w;i++)cells+=`<span class="cell blank"></span>`;
+    for(let n=first;n<=last;n++){
+      const x=byDay.get(n);const dd=ymd(n).d;
+      if(!x){cells+=`<span class="cell off" aria-hidden="true">${dd}</span>`;continue;}
+      const tipTxt=`<b>${fmtD(n,true)}</b><br>From ${money(x.price*T)} on ${esc(x.opt.a.n)}${q.trip==="rt"?`<br>Return ${fmtD(n+q.nights)}`:""}`;
+      cells+=`<button type="button" class="cell b${bin(x.price)}${bestSet.has(n)?" best":""}${n===selDay?" sel":""}" data-day="${n}" data-tip="${esc(tipTxt)}" aria-label="${fmtD(n,true)}, from ${money(x.price*T)}">${dd}</button>`;
+    }
+    cal+=`<div class="month"><h4>${MONL[m]} ${y}<span>${mr?"from "+money(mr.min*T):""}</span></h4><div class="mgrid">${cells}</div></div>`;
+  }
+  const edges=[sorted[0],...qs,peak].map(v=>money(v*T));
+  const legend=`<div class="legend"><span class="ramp">${edges[0]} ${[0,1,2,3,4,5].map(i=>`<i style="background:var(--b${i})"></i>`).join("")} ${edges[6]}</span><span class="key-best"><i></i>Cheapest 3% of dates</span><span>Darker is cheaper. Press a date to see every airline.</span></div>`;
+  const priciest=[...days].sort((a,b)=>b.price-a.price).slice(0,40);const avoid=[];
+  for(const x of priciest){if(avoid.every(a=>Math.abs(a.day-x.day)>5))avoid.push(x);if(avoid.length===3)break;}
+
+  host.innerHTML=board+tiles+`
+  <section class="panel"><div class="phead"><h2>Fare calendar</h2><p>Lowest ${q.trip==="rt"?"round-trip":"one-way"} total per departure date, if booked today${T>1?`, for ${T} travelers`:""}.</p></div>
+    <div class="cal">${cal}</div>${legend}
+    <p class="foot">Priciest stretches to avoid: ${avoid.map(x=>`${fmtD(x.day)} (${money(x.price*T)})`).join(", ")}. Typical fare in this window: ${money(typical*T)}.</p></section>
+  <section class="panel" id="detail"></section>
+  <div class="grid2">
+    <section class="panel"><div class="phead"><h3>By month</h3><p>Typical lowest fare</p></div><div class="chart" id="ch-month"></div></section>
+    <section class="panel"><div class="phead"><h3>By departure day</h3><p>Average lowest fare</p></div><div class="chart" id="ch-dow"></div></section>
+  </div>
+  <div class="grid2">
+    <section class="panel"><div class="phead"><h3>Airlines on this route</h3><p>Bar: lowest fare found · Tick: typical fare</p></div><div class="chart" id="ch-air"></div>
+      <p class="foot">${esc(cheapestAirline)} has the lowest fare on the most dates.${q.bags?" Prices include one checked bag each way, which evens out cheap basic fares.":" Bag fees are not included; turn on “Include a checked bag” for a fairer comparison."}</p></section>
+    <section class="panel"><div class="phead"><h3>When to book</h3><p id="bk-sub"></p></div><div class="chart" id="ch-book"></div>
+      <p class="foot">Estimated fare for your selected date, depending on how many days before departure you buy. The shaded range is the cheapest time to book.</p></section>
+  </div>`;
+
+  host.querySelector(".cal").addEventListener("click",ev=>{const b=ev.target.closest("button.cell");if(!b)return;selDay=+b.dataset.day;
+    host.querySelectorAll(".cell.sel").forEach(c=>c.classList.remove("sel"));b.classList.add("sel");renderDetail(q);renderBooking(q,[bandLo,bandHi]);});
+
+  R.chartData={
+    month:mRows.map(r=>({label:MON[r.m],value:r.med*T,hi:r===bestM,tip:`<b>${MONL[r.m]} ${r.y}</b><br>Typical ${money(r.med*T)}<br>Lowest ${money(r.min*T)}`})),
+    dow:[1,2,3,4,5,6,0].map(w=>dw.find(r=>r.w===w)).filter(Boolean).map(r=>({label:WD[r.w],value:r.avg*T,hi:r===dwSorted[0],tip:`<b>${WDL[r.w]} departures</b><br>Average lowest ${money(r.avg*T)}`})),
+    air:R.opts.map(opt=>{const v=R.per.get(opt.a.c).map(x=>x.p);const mn=v.reduce((b,x,i)=>x<v[b]?i:b,0);const low=R.per.get(opt.a.c)[mn];
+      return{name:opt.a.n,min:v[mn]*T,med:median(v)*T,tip:`<b>${esc(opt.a.n)}</b> · ${opt.stops===0?"Nonstop":opt.stops+" stop"+(opt.stops>1?"s":"")+(opt.via?" via "+opt.via:"")}<br>Lowest ${money(v[mn]*T)} on ${fmtD(low.day)}<br>Typical ${money(median(v)*T)}`};}).sort((a,b)=>a.min-b.min).slice(0,12),
+    band:[bandLo,bandHi]
+  };
+  drawCharts(q);renderDetail(q);
+}
+function drawCharts(q){
+  if(!R||!R.chartData)return;const c=R.chartData;
+  const m=$("ch-month");if(m)barChart(m,c.month,{aria:"Typical lowest fare by month",labelAll:c.month.length<=6});
+  const w=$("ch-dow");if(w)barChart(w,c.dow,{aria:"Average lowest fare by departure weekday"});
+  const a=$("ch-air");if(a)airlineChart(a,c.air);
+  renderBooking(q,c.band);
+}
+function renderBooking(q,band){
+  const el=$("ch-book");if(!el||selDay==null)return;
+  const o=R.o,d=R.d;const T=q.trav;const pts=[];
+  const maxA=Math.max(60,Math.min(330,selDay-TODAY+60));
+  for(let a=maxA;a>=0;a-=2){let best=Infinity;for(const opt of R.opts){const p=tripPrice(opt,o,d,selDay,q,a).total;if(p<best)best=p;}pts.push({ahead:a,price:best*T,bookDay:selDay-a});}
+  if(pts[pts.length-1].ahead!==0){let best=Infinity;for(const opt of R.opts)best=Math.min(best,tripPrice(opt,o,d,selDay,q,0).total);pts.push({ahead:0,price:best*T,bookDay:selDay});}
+  const ta=selDay-TODAY;
+  const b=[Math.min(band[0],maxA),Math.min(band[1],maxA)];
+  bookingChart(el,pts,ta,b[0]<b[1]?b:null);
+  const sub=$("bk-sub");const byDay=selDay-band[0];
+  if(sub)sub.textContent=ta>=band[0]?(ta>band[1]?`${fmtD(selDay)}: no rush, the sweet spot opens ${fmtD(selDay-band[1],true)}`:`${fmtD(selDay)}: you're in the sweet spot now; book by ${fmtD(byDay,true)}`):`${fmtD(selDay)}: inside ${band[0]} days, so book soon`;
+}
+function renderDetail(q){
+  const el=$("detail");if(!el||selDay==null)return;
+  const o=R.o,d=R.d,T=q.trav;
+  const rows=R.opts.map(opt=>({opt,...tripPrice(opt,o,d,selDay,q)})).sort((a,b)=>a.total-b.total);
+  const min=rows[0].total;
+  el.innerHTML=`<div class="phead"><h2>${fmtD(selDay,true)}${q.trip==="rt"?` → ${fmtD(selDay+q.nights,true)}`:""}</h2><p>${rows.length} airline${rows.length>1?"s":""} · estimated ${q.trip==="rt"?"round-trip":"one-way"} price${T>1?` for ${T} travelers`:""}, if booked today</p></div>
+  <div class="tscroll"><table><thead><tr><th>Airline</th><th>Route</th><th class="r">Time each way</th><th class="r">Fare</th><th class="r">Bags</th><th class="r">Total</th><th class="r">vs. cheapest</th></tr></thead><tbody>
+  ${rows.map(r=>`<tr><td><span class="al"><span class="alc">${r.opt.a.c}</span>${esc(r.opt.a.n)}</span></td><td>${stopText(r.opt)}</td><td class="r num">${hrs(r.opt.hours)}</td>
+    <td class="r num">${money(r.fare*T)}</td><td class="r num">${r.bags?money(r.bags*T):"—"}</td><td class="r tot">${money(r.total*T)}</td>
+    <td class="r num">${r.total===min?`<span class="cheap">Cheapest</span>`:"+"+money((r.total-min)*T)}</td></tr>`).join("")}
+  </tbody></table></div>${links(q,selDay)}`;
+}
+
+/* ---------------- render: explore ---------------- */
+function renderExplore(q){
+  const host=$("view-explore");const o=AP[q.from];const[s,e]=windowRange(q.win);const T=q.trav;
+  const rows=[];
+  for(const dc of Object.keys(AP)){
+    if(dc===q.from)continue;let opts=routeOptions(q.from,dc);if(q.nonstop)opts=opts.filter(x=>x.stops===0);if(!opts.length)continue;
+    const d=AP[dc];let best=null;const byM=new Map();
+    for(let day=s;day<=e;day+=2){
+      let mn=Infinity,al=null;for(const opt of opts){const p=tripPrice(opt,o,d,day,q).total;if(p<mn){mn=p;al=opt.a;}}
+      if(!best||mn<best.p)best={p:mn,day,al};const t=ymd(day);const k=t.y*12+t.m;byM.set(k,Math.min(byM.get(k)??Infinity,mn));
+    }
+    const typ=[...byM.values()];
+    rows.push({d,best,dist:miles(o,d),dom:isDom(o,d),typ:median(typ),nonstop:opts.some(x=>x.stops===0)});
+  }
+  const region=(store.get("fare-almanac-region"))||"all";
+  const domR=rows.filter(r=>r.dom).sort((a,b)=>a.best.p-b.best.p);
+  const intR=rows.filter(r=>!r.dom).sort((a,b)=>a.best.p-b.best.p);
+  const regOpts=["all",...new Set(intR.map(r=>r.d.region))];
+  const tbl=(list,label)=>list.length?`<div class="tscroll explore-tbl"><table><thead><tr><th>Destination</th><th class="r">Lowest ${q.trip==="rt"?"round trip":"one way"}</th><th>Best date</th><th class="r">¢ per mile</th><th></th></tr></thead><tbody>
+    ${list.map(r=>{const mi=r.dist*(q.trip==="rt"?2:1);return`<tr><td><span class="al"><span class="alc">${r.d.code}</span>${esc(r.d.city)}${r.nonstop?` <span class="chip" style="padding:1px 7px;font-size:11px">Nonstop</span>`:""}</span></td>
+      <td class="r tot">${money(r.best.p*T)}</td><td>${fmtD(r.best.day)} · ${esc(r.best.al.n)}</td><td class="r num">${(r.best.p*100/mi).toFixed(1)}</td>
+      <td class="r"><button type="button" class="linkbtn" data-go="${r.d.code}">View fares</button></td></tr>`;}).join("")}</tbody></table></div>`:`<p class="empty">No ${label} destinations match these filters.</p>`;
+  const intFiltered=region==="all"?intR:intR.filter(r=>r.d.region===region);
+  const cheapestInt=intR[0],cheapestDom=domR[0];
+  host.innerHTML=`<div class="board"><div class="codes"><div class="code"><b>${o.code}</b><span>${esc(o.city)}</span></div>${PLANE}<div class="code"><b>Anywhere</b><span>${rows.length} destinations with service</span></div></div>
+    <div class="facts"><span class="chip">${q.trip==="rt"?`Round trip · ${q.nights} nights`:"One way"}</span><span class="chip">${esc(els.win.options[els.win.selectedIndex].text)}</span></div></div>
+  <div class="tiles">
+    ${cheapestDom?`<div class="tile lead"><span class="eyebrow">Cheapest domestic trip</span><span class="big">${money(cheapestDom.best.p*T)}</span><span class="sub">${esc(cheapestDom.d.city)} · ${fmtD(cheapestDom.best.day,true)}</span></div>`:""}
+    ${cheapestInt?`<div class="tile"><span class="eyebrow">Cheapest international trip</span><span class="mid">${money(cheapestInt.best.p*T)}</span><span class="sub">${esc(cheapestInt.d.city)} · ${fmtD(cheapestInt.best.day,true)}</span></div>`:""}
+    ${(()=>{const eu=intR.find(r=>r.d.region==="EU");return eu?`<div class="tile"><span class="eyebrow">Cheapest to Europe</span><span class="mid">${money(eu.best.p*T)}</span><span class="sub">${esc(eu.d.city)} · ${fmtD(eu.best.day,true)}</span></div>`:"";})()}
+    ${(()=>{const as=intR.find(r=>["EA","SEA"].includes(r.d.region));return as?`<div class="tile"><span class="eyebrow">Cheapest to Asia</span><span class="mid">${money(as.best.p*T)}</span><span class="sub">${esc(as.d.city)} · ${fmtD(as.best.day,true)}</span></div>`:"";})()}
+  </div>
+  <div class="grid2">
+    <section class="panel"><div class="phead"><h2>Domestic</h2><p>${domR.length} destinations, cheapest first</p></div>${tbl(domR,"domestic")}</section>
+    <section class="panel"><div class="phead"><h2>International</h2>
+      <div class="fld" style="min-width:180px"><label for="region">Region</label><select id="region">${regOpts.map(r=>`<option value="${r}"${r===region?" selected":""}>${r==="all"?"All regions":esc(REGIONS[r])}</option>`).join("")}</select></div></div>
+      ${tbl(intFiltered,"international")}</section>
+  </div>
+  <p class="foot">¢ per mile compares value across distances: under 8¢ is a strong deal for long-haul, under 12¢ for domestic.</p>`;
+  $("region").addEventListener("change",ev=>{store.set("fare-almanac-region",ev.target.value);renderExplore(q);});
+  host.querySelectorAll("[data-go]").forEach(b=>b.addEventListener("click",()=>{els.to.value=labelOf(b.dataset.go);selDay=null;setView("route");}));
+}
+
+/* ---------------- wiring ---------------- */
+function run(){
+  const q=readQuery();
+  els.nights.closest(".fld").style.visibility=q.trip==="rt"?"visible":"hidden";
+  const bad=[];if(!q.from)bad.push(`“${els.from.value}”`);if(view==="route"&&!q.to)bad.push(`“${els.to.value}”`);
+  if(bad.length){els.err.hidden=false;els.err.textContent=`${bad.join(" and ")} isn't in the airport list. Type a 3-letter code (OKC, LHR, NRT) or a city name and pick from the suggestions.`;return;}
+  if(view==="route"&&q.from===q.to){els.err.hidden=false;els.err.textContent="Origin and destination are the same airport. Pick a different destination.";return;}
+  els.err.hidden=true;
+  store.set("fare-almanac-q",q);
+  const key=JSON.stringify(q)+view;if(key!==lastKey){lastKey=key;}
+  if(view==="route")renderRoute(q);else renderExplore(q);
+}
+function setView(v){
+  view=v;$("tab-route").setAttribute("aria-selected",v==="route");$("tab-explore").setAttribute("aria-selected",v==="explore");
+  $("view-route").hidden=v!=="route";$("view-explore").hidden=v!=="explore";
+  $("to").closest(".fld").style.opacity=v==="explore"?".45":"1";
+  run();
+}
+$("tab-route").addEventListener("click",()=>setView("route"));
+$("tab-explore").addEventListener("click",()=>setView("explore"));
+$("search").addEventListener("submit",e=>{e.preventDefault();run();});
+$("swap").addEventListener("click",()=>{const t=els.from.value;els.from.value=els.to.value;els.to.value=t;selDay=null;run();});
+["trip","trav","win","cabin","bags","nonstop"].forEach(k=>els[k].addEventListener("change",()=>{if(k==="win")selDay=null;run();}));
+els.nights.addEventListener("change",run);
+["from","to"].forEach(k=>els[k].addEventListener("change",()=>{const c=parseAirport(els[k].value);if(c)els[k].value=labelOf(c);selDay=null;run();}));
+["from","to"].forEach(k=>els[k].addEventListener("focus",()=>els[k].select()));
+let rz;addEventListener("resize",()=>{clearTimeout(rz);rz=setTimeout(()=>{if(view==="route")drawCharts(readQuery());},150);});
+run();
+})();
+</script>
