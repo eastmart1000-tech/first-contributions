@@ -1,0 +1,58 @@
+:root {
+  --bg: #ffffff;
+  --fg: #1f1e1c;
+  --muted: #6b6862;
+  --border: #d8d5ce;
+  --field: #ffffff;
+  --accent: #fe5c00; /* OSU orange */
+  --error: #b3261e;
+}
+@media (prefers-color-scheme: dark) {
+  :root {
+    --bg: #1c1b19;
+    --fg: #ecebe8;
+    --muted: #a19e97;
+    --border: #3a3834;
+    --field: #262522;
+    --error: #f28b82;
+  }
+}
+* { box-sizing: border-box; }
+body {
+  width: 320px;
+  margin: 0;
+  padding: 12px;
+  background: var(--bg);
+  color: var(--fg);
+  font: 13px/1.4 system-ui, sans-serif;
+}
+h1 { font-size: 15px; margin: 0 0 8px; }
+header { display: flex; flex-direction: column; gap: 8px; }
+button.primary {
+  font: inherit;
+  font-weight: 600;
+  padding: 8px;
+  border: none;
+  border-radius: 6px;
+  background: var(--accent);
+  color: #fff;
+  cursor: pointer;
+}
+button.primary:hover { filter: brightness(1.08); }
+.check { display: flex; gap: 6px; align-items: center; color: var(--muted); }
+#status { margin: 0; min-height: 1em; }
+#status.error { color: var(--error); }
+details { margin-top: 10px; border-top: 1px solid var(--border); padding-top: 8px; }
+summary { cursor: pointer; font-weight: 600; }
+fieldset { border: 1px solid var(--border); border-radius: 6px; margin: 8px 0 0; padding: 6px 8px 8px; }
+legend { color: var(--muted); padding: 0 4px; }
+fieldset label { display: flex; flex-direction: column; gap: 2px; margin-top: 6px; }
+input:not([type="checkbox"]) {
+  font: inherit;
+  padding: 5px 7px;
+  border: 1px solid var(--border);
+  border-radius: 5px;
+  background: var(--field);
+  color: var(--fg);
+}
+.hint { color: var(--muted); font-size: 12px; margin: 8px 0 0; }
