@@ -1,0 +1,277 @@
+# internbot config. apply.py refuses to start while any value still says FILL_ME.
+
+# --- About you -------------------------------------------------------------
+# Answers below can use these as {placeholders}, e.g. answer: "{phone}".
+# Quote Yes/No answers ("Yes"), otherwise YAML reads them as true/false.
+profile:
+  first_name: "Easton"
+  last_name: "Martin"
+  email: "easton.martin@okstate.edu"
+  phone: "FILL_ME"                     # e.g. "9185551234" (digits only works best)
+  city: "Tulsa, Oklahoma"
+  linkedin_url: "FILL_ME"              # e.g. "https://www.linkedin.com/in/your-handle"
+  authorized_to_work_us: "FILL_ME"     # "Yes" or "No"
+  needs_sponsorship: "FILL_ME"         # "Yes" or "No" (now or in the future)
+  gpa: "3.47"
+  school: "Oklahoma State University"
+  major: "Electrical Engineering Technology"
+  graduation: "May 2029"
+
+# Path to your resume PDF. Relative paths are relative to this folder.
+# Keep the PDF out of git (it's in .gitignore).
+resume_path: "FILL_ME"                 # e.g. "Easton_Martin_Resume.pdf"
+
+# --- Search ----------------------------------------------------------------
+# Every search is run in every location (searches x locations).
+searches:
+  - "electrical engineering intern"
+  - "electrical engineering technology intern"
+  - "power engineering intern"
+  - "utility intern"
+  - "controls engineering intern"
+  - "automation intern"
+  - "accounting intern"
+  - "audit intern"
+  - "tax intern"
+
+locations:
+  - "Stillwater, Oklahoma, United States"
+  - "Tulsa, Oklahoma, United States"
+  - "Oklahoma City, Oklahoma, United States"
+  - "Dallas, Texas, United States"
+
+distance_miles: 25
+posted_within_days: 14
+max_pages_per_search: 2      # 25 results per page
+
+# --- Scoring ---------------------------------------------------------------
+# A title must contain intern / internship / co-op / coop, and none of these:
+exclude_title_words:
+  - senior
+  - sr
+  - sr.
+  - manager
+  - director
+  - principal
+  - staff
+  - lead
+  - software
+  - developer
+  - full stack
+  - frontend
+  - backend
+  - web
+  - data scientist
+  - machine learning
+  - marketing
+  - sales
+  - recruiting
+  - human resources
+  - nurse
+  - nursing
+  - pharmacy
+  - phd
+  - mba
+  - master's
+  - masters
+
+# Each keyword found in the TITLE adds weight * title_multiplier;
+# each keyword found in the DESCRIPTION adds weight.
+title_multiplier: 2
+keywords:
+  # power / utility
+  electrical: 3
+  power: 3
+  utility: 3
+  utilities: 3
+  substation: 3
+  transmission: 2
+  distribution: 2
+  protection: 2
+  relay: 2
+  grid: 2
+  energy: 2
+  high voltage: 2
+  generation: 1
+  renewable: 1
+  # controls / automation
+  controls: 3
+  automation: 3
+  plc: 3
+  scada: 3
+  instrumentation: 2
+  hmi: 2
+  ladder logic: 2
+  electronics: 2
+  circuit: 2
+  industrial: 1
+  manufacturing: 1
+  # accounting / audit / tax
+  accounting: 3
+  audit: 3
+  tax: 3
+  assurance: 2
+  cpa: 2
+  gaap: 2
+  financial reporting: 2
+  reconciliation: 1
+  excel: 1
+  # you specifically
+  engineering technology: 3
+  data center: 2
+  oklahoma state: 2
+  summer 2027: 3
+  sophomore: 1
+  junior: 1
+
+# Extra points when the TITLE contains these phrases.
+title_boost:
+  electrical engineering: 4
+  engineering technology: 4
+  electrical intern: 3
+  power intern: 3
+  substation: 3
+  controls intern: 3
+  automation intern: 3
+  accounting intern: 3
+  audit intern: 3
+  tax intern: 3
+  assurance intern: 2
+  engineering intern: 2
+  co-op: 1
+
+preferred_company_bonus: 5
+preferred_companies:
+  # utilities / energy (OK + DFW)
+  - OG&E
+  - Public Service Company of Oklahoma
+  - PSO
+  - AEP
+  - American Electric Power
+  - Grand River Dam Authority
+  - GRDA
+  - Oklahoma Municipal Power Authority
+  - Western Farmers Electric Cooperative
+  - ONEOK
+  - ONE Gas
+  - Williams
+  - Devon Energy
+  - Phillips 66
+  - Oncor
+  - Vistra
+  - Atmos Energy
+  # engineering / controls
+  - Burns & McDonnell
+  - Black & Veatch
+  - POWER Engineers
+  - Schneider Electric
+  - Siemens
+  - Rockwell Automation
+  - Emerson
+  - Honeywell
+  - Texas Instruments
+  # accounting
+  - Deloitte
+  - PwC
+  - EY
+  - Ernst & Young
+  - KPMG
+  - Grant Thornton
+  - Forvis Mazars
+  - FORVIS
+  - HoganTaylor
+  - RSM
+  - Eide Bailly
+  - Baker Tilly
+  - Crowe
+  - Weaver
+
+min_score: 8                 # only apply at or above this, highest first
+
+# --- Safety rails ----------------------------------------------------------
+daily_cap: 15                                # counted from applied.csv across runs
+delay_between_applications_seconds: [45, 120]
+action_pause_seconds: [0.8, 2.5]
+headless: false
+
+# --- Form answers ----------------------------------------------------------
+# Ordered: the FIRST pattern (case-insensitive regex) that matches the
+# question text wins. `answer` can be a single value or a list of
+# alternatives; for dropdowns/radios the first alternative that matches an
+# option is picked. A required question with no matching rule is NOT guessed:
+# the application is discarded and logged as skipped_unanswered, with the
+# question in the `note` column so you can add a rule for it.
+answers:
+  # identity / contact
+  - pattern: "first name"
+    answer: "{first_name}"
+  - pattern: "last name|surname"
+    answer: "{last_name}"
+  - pattern: "^(full )?name\\b"
+    answer: "{first_name} {last_name}"
+  - pattern: "e-?mail"
+    answer: "{email}"
+  - pattern: "phone country code|country code"
+    answer: ["United States (+1)", "United States"]
+  - pattern: "phone|mobile"
+    answer: "{phone}"
+  - pattern: "linkedin"
+    answer: "{linkedin_url}"
+
+  # work authorization (sponsorship first: those questions often mention "authorization" too)
+  - pattern: "sponsor|visa"
+    answer: "{needs_sponsorship}"
+  - pattern: "authori[sz]ed to work|legally (authori[sz]ed|eligible|permitted)|eligible to work|work authori[sz]ation"
+    answer: "{authorized_to_work_us}"
+  - pattern: "18 years|at least 18|over the age of 18"
+    answer: "Yes"
+
+  # logistics (review these: they are reasonable defaults, not facts)
+  - pattern: "commut|on-?site|in[- ]office|this location|willing to work (at|in|from)"
+    answer: "Yes"
+  - pattern: "relocat"
+    answer: "Yes"
+  - pattern: "summer 2027|available.*summer"
+    answer: "Yes"
+  - pattern: "start date|available to start|when can you start|earliest.*start"
+    answer: "May 2027"
+  - pattern: "how did you hear"
+    answer: ["LinkedIn", "Job board", "Online"]
+  - pattern: "\\bcity\\b|current location|^location"
+    answer: "{city}"
+
+  # education
+  - pattern: "have you (completed|earned|obtained|received).*(bachelor|degree)"
+    answer: "No"
+  - pattern: "currently enrolled|current(ly)? (a )?(full[- ]time )?student|pursuing a degree"
+    answer: "Yes"
+  - pattern: "\\bgpa\\b|grade point"
+    answer: "{gpa}"
+  - pattern: "graduat"
+    answer: ["{graduation}", "2029"]
+  - pattern: "level of education|degree.*(pursuing|seeking)|highest.*education|what degree"
+    answer: ["Bachelor's Degree", "Bachelor's", "Bachelor", "Bachelors"]
+  - pattern: "\\bmajor\\b|field of study|discipline"
+    answer: ["{major}", "Electrical Engineering", "Engineering"]
+  - pattern: "(school|university|college)( name)?\\??$|which (school|university)|where.*(attend|study)"
+    answer: "{school}"
+
+  # years of experience (specific first, generic last)
+  - pattern: "years.*(excel|microsoft office)"
+    answer: "3"
+  - pattern: "years.*(customer service|leadership|supervis|team lead)"
+    answer: "3"
+  - pattern: "years.*(data center|network|cabling)"
+    answer: "1"
+  - pattern: "how many years|years of (work )?experience"
+    answer: "0"
+
+  # voluntary self-identification (EEO)
+  - pattern: "gender|sex\\b|pronoun"
+    answer: ["I don't wish to answer", "Decline", "Prefer not"]
+  - pattern: "\\brace\\b|ethnic|hispanic|latino"
+    answer: ["I don't wish to answer", "Decline", "Prefer not"]
+  - pattern: "veteran"
+    answer: ["I don't wish to answer", "Decline", "Prefer not", "I am not a protected veteran"]
+  - pattern: "disabilit"
+    answer: ["I don't wish to answer", "Decline", "Prefer not"]
