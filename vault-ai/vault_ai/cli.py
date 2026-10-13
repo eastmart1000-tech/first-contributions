@@ -79,9 +79,34 @@ def run_assistant(args, vault: Path, index: VaultIndex) -> int:
     def show_tool(name, inp):
         print(f"  · {name}({', '.join(f'{k}={v!r}' for k, v in inp.items() if v)})", file=sys.stderr)
 
+    streamed = []
+
+    def show_text(chunk: str):
+        streamed.append(chunk)
+        print(chunk, end="", flush=True)
+
     def answer(question: str):
+        streamed.clear()
         try:
-            print("\n" + assistant.ask(question, on_tool_call=show_tool) + "\n")
+            print()
+            result = assistant.ask(question, on_tool_call=show_tool, on_text=show_text)
+            if not streamed:  # nothing came through the stream, e.g. a declined request
+                print(result.text, end="")
+            print()
+            if result.note:
+                print(result.note, file=sys.stderr)
+            if result.sources:
+                print("\nSources:")
+                for path in result.sources:
+                    print(f"  - {path}")
+            print()
+        except TypeError as e:
+            if "authentication" not in str(e):
+                raise
+            # The SDK raises this when it finds no credentials at all.
+            print("No Anthropic credentials found. Set ANTHROPIC_API_KEY "
+                  "(get a key at console.anthropic.com).", file=sys.stderr)
+            raise SystemExit(1)
         except anthropic.AuthenticationError:
             print("Authentication failed: check ANTHROPIC_API_KEY.", file=sys.stderr)
         except anthropic.RateLimitError:

@@ -50,6 +50,8 @@ python -m vault_ai ask --folder Work "What do I owe for month-end close?"
 python -m vault_ai chat --folder College         # follow-up questions; /new to reset
 ```
 
+Answers appear as Claude writes them. The searches Claude runs are shown as `· search_notes(...)` lines, and a **Sources** list of the notes it cited follows each answer.
+
 `--effort low|medium|high|xhigh|max` trades speed and cost for thoroughness (default `medium`).
 
 Try it without your own vault: `python -m vault_ai --vault sample_vault chat`.
@@ -68,7 +70,7 @@ pip install pytest && python -m pytest -q
 | Phase | What | Why |
 |---|---|---|
 | **1 (done)** | Read the vault, chunk by heading, keyword index, Claude Q&A with tools and citations, CLI | A working core |
-| 2 | Stream answers as they're written; show which notes were searched | Faster feel on long answers |
+| **2 (done)** | Stream answers as they're written; list the cited notes as sources after each answer | Faster feel on long answers |
 | 3 | Semantic search: add embeddings from a local model (e.g. `sentence-transformers`) and combine them with the keyword ranking | Finds "power delivered to load" when the note says "maximum power transfer" |
 | 4 | Use the link graph: pull in notes that `[[link]]` to the top hits | Your vault's links are hand-made relevance signals |
 | 5 | Study and work modes: "quiz me on EE 3714", "summarize this week's meetings", date filters from frontmatter | Built for exam prep and work recaps |

@@ -11,12 +11,14 @@ Flow for each question:
 
 from __future__ import annotations
 
+from dataclasses import dataclass
 from pathlib import Path
 
 import anthropic
 from anthropic import beta_tool
 
 from .index import Hit, VaultIndex
+from .notes import WIKILINK_RE
 
 MODEL = "claude-opus-5-5"
 
@@ -36,6 +38,13 @@ or [[Thevenin Equivalents#Worked Example]] for a section. If the notes don't \
 answer the question, say so plainly. You may add general knowledge to fill a \
 gap, but label it as not from their notes. When notes disagree or look \
 outdated, point that out rather than silently picking one."""
+
+
+@dataclass
+class Answer:
+    text: str
+    sources: list[str]  # vault paths of the notes the answer cites
+    note: str = ""  # e.g. a warning that the answer was cut off
 
 
 def format_hits(hits: list[Hit]) -> str:
@@ -98,7 +107,9 @@ class VaultAssistant:
 
         return [search_notes, read_note]
 
-    def ask(self, question: str, on_tool_call=None) -> str:
+    def ask(self, question: str, on_tool_call=None, on_text=None) -> Answer:
+        """Answer one question. `on_text` receives the answer as it streams in;
+        `on_tool_call(name, input)` is told about each search Claude runs."""
         hits = self.index.search(question, limit=8, folder=self.folder)
         self.history.append({
             "role": "user",
@@ -106,6 +117,7 @@ class VaultAssistant:
         })
 
         runner = self.client.beta.messages.tool_runner(
+            stream=True,
             model=MODEL,
             max_tokens=16000,
             system=SYSTEM_PROMPT,
@@ -121,10 +133,15 @@ class VaultAssistant:
         )
 
         final = None
-        for message in runner:
-            final = message
+        for stream in runner:  # one stream per model turn
+            for event in stream:
+                if on_text and event.type == "content_block_delta" and event.delta.type == "text_delta":
+                    on_text(event.delta.text)
+            message = final = stream.get_final_message()
             # Mirror the conversation so the next question has full context.
             self.history.append({"role": "assistant", "content": echoable(message.content)})
+            if message.stop_reason in ("refusal", "max_tokens"):
+                break  # don't run tools from a cut-off or declined turn
             if on_tool_call:
                 for block in message.content:
                     if block.type == "tool_use":
@@ -134,13 +151,18 @@ class VaultAssistant:
                 self.history.append(tool_response)
 
         if final is None:
-            return "(no response)"
+            return Answer("(no response)", [])
         if final.stop_reason == "refusal":
-            return "Claude declined to answer this one."
+            return Answer("Claude declined to answer this one.", [])
         text = "".join(b.text for b in final.content if b.type == "text")
+        note = ""
         if final.stop_reason == "max_tokens":
-            text += "\n\n[answer cut off: hit the max_tokens limit]"
-        return text
+            note = "[answer cut off: hit the max_tokens limit]"
+            if any(b.type == "tool_use" for b in final.content):
+                # The unanswered tool call would make the next request invalid.
+                self.history.pop()
+        sources = self.index.resolve_links(WIKILINK_RE.findall(text))
+        return Answer(text, sources, note)
 
     def reset(self):
         self.history.clear()

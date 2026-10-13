@@ -1,6 +1,9 @@
+import json
 import shutil
 from pathlib import Path
 
+import anthropic
+import httpx2
 import pytest
 
 from vault_ai.assistant import VaultAssistant
@@ -86,3 +89,71 @@ def test_read_note_tool_stays_inside_vault(vault, index, tmp_path):
     read_note = next(t for t in assistant.tools if t.name == "read_note")
     assert "Five steps" in read_note.call({"path": "College/ACCT 3013 - Intermediate Accounting/Revenue Recognition.md"})
     assert read_note.call({"path": "../secret.md"}).startswith("No note found")
+
+
+def test_resolve_links(index):
+    assert index.resolve_links(["Thevenin Equivalents", "thevenin equivalents", "Nope", "Work/Meetings/2026-10-02 Team Sync"]) == [
+        "College/EE 3714 - Circuits II/Thevenin Equivalents.md",
+        "Work/Meetings/2026-10-02 Team Sync.md",
+    ]
+
+
+def _sse(message_id, content, stop_reason):
+    """Encode one model turn as the server-sent events the streaming API returns."""
+    events = [("message_start", {"type": "message_start", "message": {
+        "id": message_id, "type": "message", "role": "assistant", "model": "claude-opus-5-5", "content": [],
+        "stop_reason": None, "stop_sequence": None, "usage": {"input_tokens": 1, "output_tokens": 0}}})]
+    for i, block in enumerate(content):
+        if block["type"] == "text":
+            events.append(("content_block_start", {"type": "content_block_start", "index": i, "content_block": {"type": "text", "text": ""}}))
+            for word in block["text"].split(" "):
+                events.append(("content_block_delta", {"type": "content_block_delta", "index": i,
+                                                       "delta": {"type": "text_delta", "text": word + " "}}))
+        else:
+            events.append(("content_block_start", {"type": "content_block_start", "index": i, "content_block": {**block, "input": {}}}))
+            events.append(("content_block_delta", {"type": "content_block_delta", "index": i,
+                                                   "delta": {"type": "input_json_delta", "partial_json": json.dumps(block["input"])}}))
+        events.append(("content_block_stop", {"type": "content_block_stop", "index": i}))
+    events.append(("message_delta", {"type": "message_delta", "delta": {"stop_reason": stop_reason, "stop_sequence": None},
+                                     "usage": {"output_tokens": 5}}))
+    events.append(("message_stop", {"type": "message_stop"}))
+    return "".join(f"event: {name}\ndata: {json.dumps(data)}\n\n" for name, data in events)
+
+
+def fake_client(turns):
+    """An Anthropic client whose API replies with the given (content, stop_reason) turns in order."""
+    requests = []
+
+    def handler(request):
+        requests.append(json.loads(request.content))
+        content, stop = turns[len(requests) - 1]
+        return httpx2.Response(200, headers={"content-type": "text/event-stream"},
+                               content=_sse(f"msg_{len(requests)}", content, stop).encode())
+
+    client = anthropic.Anthropic(api_key="test", http_client=anthropic.DefaultHttpxClient(transport=httpx2.MockTransport(handler)))
+    return client, requests
+
+
+def test_ask_streams_runs_tools_and_lists_sources(vault, index):
+    client, requests = fake_client([
+        ([{"type": "tool_use", "id": "t1", "name": "search_notes", "input": {"query": "norton", "folder": "College"}}], "tool_use"),
+        ([{"type": "text", "text": "Use [[Thevenin Equivalents#Finding R_th]] and [[Maximum Power Transfer|max power]]."}], "end_turn"),
+    ])
+    assistant = VaultAssistant(vault, index, client=client)
+    tools, chunks = [], []
+    answer = assistant.ask("Is Norton related to Thevenin?", on_tool_call=lambda n, i: tools.append((n, i)), on_text=chunks.append)
+
+    assert tools == [("search_notes", {"query": "norton", "folder": "College"})]
+    assert len(chunks) > 1 and "".join(chunks) == answer.text
+    assert answer.sources == ["College/EE 3714 - Circuits II/Thevenin Equivalents.md",
+                              "College/EE 3714 - Circuits II/Maximum Power Transfer.md"]
+    assert requests[0]["stream"] is True and requests[0]["fallbacks"] == "default"
+    assert "<excerpt" in json.dumps(requests[1]["messages"][-1])  # tool result sent back
+    assert [m["role"] for m in assistant.history] == ["user", "assistant", "user", "assistant"]
+
+
+def test_ask_refusal_does_not_run_tools(vault, index):
+    client, requests = fake_client([([], "refusal")])
+    assistant = VaultAssistant(vault, index, client=client)
+    answer = assistant.ask("anything")
+    assert answer.text.startswith("Claude declined") and len(requests) == 1

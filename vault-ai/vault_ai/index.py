@@ -128,6 +128,20 @@ class VaultIndex:
         params.append(limit)
         return [Hit(*row) for row in self.db.execute(sql, params)]
 
+    def resolve_links(self, links: list[str]) -> list[str]:
+        """Map [[link]] targets to note paths, the way Obsidian does: by file
+        name, or by path when the link includes folders. Unknown links are dropped."""
+        paths = []
+        for link in dict.fromkeys(l.strip() for l in links):
+            row = self.db.execute(
+                "SELECT path FROM notes WHERE lower(title) = lower(?) OR lower(path) = lower(?) "
+                "ORDER BY path LIMIT 1",
+                (link.rsplit("/", 1)[-1].removesuffix(".md"), link if link.endswith(".md") else link + ".md"),
+            ).fetchone()
+            if row and row[0] not in paths:
+                paths.append(row[0])
+        return paths
+
     def stats(self) -> dict:
         notes = self.db.execute("SELECT COUNT(*) FROM notes").fetchone()[0]
         chunks = self.db.execute("SELECT COUNT(*) FROM chunks").fetchone()[0]
