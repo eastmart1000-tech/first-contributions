@@ -1,4 +1,5 @@
 import json
+import re
 import shutil
 from pathlib import Path
 
@@ -157,3 +158,93 @@ def test_ask_refusal_does_not_run_tools(vault, index):
     assistant = VaultAssistant(vault, index, client=client)
     answer = assistant.ask("anything")
     assert answer.text.startswith("Claude declined") and len(requests) == 1
+
+
+class ConceptEmbedder:
+    """Stand-in for the real embedding model: maps words to a few concepts, so
+    text about the same idea in different words gets similar vectors."""
+
+    CONCEPTS = {
+        "power": {"power", "energy", "watts", "delivered"},
+        "load": {"load", "resistor", "r_l"},
+        "revenue": {"revenue", "sales", "income", "earned"},
+        "equivalent": {"thevenin", "norton", "equivalent", "simplify"},
+    }
+
+    def __init__(self, name="concept-v1"):
+        self.name = name
+        self.calls = 0
+
+    def _vec(self, text):
+        import numpy as np
+        words = set(re.findall(r"[\w]+", text.lower()))
+        return np.array([len(words & ws) for ws in self.CONCEPTS.values()] + [0.01], dtype=np.float32)
+
+    def embed_documents(self, texts):
+        from vault_ai.embeddings import normalize
+        self.calls += len(texts)
+        return normalize([self._vec(t) for t in texts])
+
+    def embed_query(self, text):
+        from vault_ai.embeddings import normalize
+        return normalize([self._vec(text)])[0]
+
+
+@pytest.fixture
+def semantic_index(vault, tmp_path):
+    idx = VaultIndex(tmp_path / "semantic.sqlite", embedder=ConceptEmbedder())
+    idx.build(vault)
+    yield idx
+    idx.close()
+
+
+def test_semantic_search_finds_notes_without_shared_words(semantic_index):
+    query = "how much energy reaches the resistor"
+    # None of these words are in the max power note, so keyword search misses it...
+    assert all("Maximum Power" not in h.title for h in semantic_index.keyword_search(query))
+    # ...but searching by meaning puts it first.
+    assert semantic_index.search(query)[0].title == "Maximum Power Transfer"
+
+
+def test_hybrid_search_keeps_exact_keyword_matches(semantic_index):
+    assert semantic_index.search("accruals reconciliation")[0].path == "Work/Meetings/2026-10-02 Team Sync.md"
+
+
+def test_semantic_search_respects_folder(semantic_index):
+    hits = semantic_index.search("how much income was earned", folder="Work")
+    assert hits and {h.folder for h in hits} == {"Work/Meetings"}
+
+
+def test_embeddings_are_incremental(vault, tmp_path):
+    db = tmp_path / "inc.sqlite"
+    embedder = ConceptEmbedder()
+    idx = VaultIndex(db, embedder=embedder)
+    first = idx.build(vault)
+    assert first.embedded == idx.stats()["chunks"] == idx.stats()["vectors"]
+
+    assert idx.build(vault).embedded == 0  # nothing changed, nothing re-embedded
+
+    (vault / "Work/Meetings/2026-10-02 Team Sync.md").unlink()
+    idx.build(vault)
+    assert idx.stats()["vectors"] == idx.stats()["chunks"]  # deleted note's vectors are gone
+    idx.close()
+
+    # Switching models re-embeds everything.
+    idx = VaultIndex(db, embedder=ConceptEmbedder(name="concept-v2"))
+    assert idx.build(vault).embedded == idx.stats()["chunks"]
+    assert idx.stats()["embedding_model"] == "concept-v2"
+    idx.close()
+
+
+def test_fuse_rewards_hits_in_both_lists():
+    from vault_ai.index import Hit, fuse
+    a, b, c = (Hit("p", "t", "f", "h", "x", 0, i) for i in (1, 2, 3))
+    fused = fuse([[a, b], [c, b]], limit=3)
+    assert fused[0].chunk_id == 2
+
+
+def test_semantic_folder_filter_ranks_inside_small_folder(semantic_index):
+    # Work has one note; even with limit=1 its chunk must come back, not be
+    # crowded out by better-matching College chunks.
+    hits = semantic_index.semantic_search("thevenin equivalent power", limit=1, folder="Work")
+    assert [h.folder for h in hits] == ["Work/Meetings"]

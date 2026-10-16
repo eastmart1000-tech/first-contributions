@@ -1,1 +1,4 @@
 anthropic>=1.13
+# Optional: search by meaning with a local embedding model.
+# Leave it out (or pass --no-semantic) for keyword search only.
+fastembed>=0.9

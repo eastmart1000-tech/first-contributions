@@ -27,8 +27,8 @@ You answer questions using the user's personal Obsidian vault: their notes from 
 college classes (electrical engineering and accounting) and from their job, \
 organized by folder.
 
-Ground every answer in the notes. You start with excerpts found by a keyword \
-search of the question. If they don't cover it well, call search_notes with \
+Ground every answer in the notes. You start with excerpts found by searching \
+the notes for the question. If they don't cover it well, call search_notes with \
 different keywords, synonyms, or a folder filter, and call read_note when an \
 excerpt is cut off or you need the rest of a note. A few searches are fine; \
 stop when you have what you need.
@@ -84,10 +84,10 @@ class VaultAssistant:
 
         @beta_tool
         def search_notes(query: str, folder: str = "") -> str:
-            """Keyword search over the user's notes. Returns the best-matching excerpts.
+            """Search the user's notes by keyword and by meaning. Returns the best-matching excerpts.
 
             Args:
-                query: Keywords to look for, e.g. "thevenin norton equivalent". Plain words work best.
+                query: What to look for: keywords ("thevenin norton equivalent") or a short description ("how to simplify a circuit to one source").
                 folder: Optional folder to search within, e.g. "College", "Work", or "College/ACCT 3013 - Intermediate Accounting". Empty searches everything.
             """
             return format_hits(index.search(query, limit=8, folder=folder or default_folder))

@@ -17,12 +17,14 @@ def main(argv: list[str] | None = None) -> int:
     parser.add_argument("--vault", default=os.environ.get("VAULT_PATH"),
                         help="path to your Obsidian vault (or set VAULT_PATH)")
     parser.add_argument("--db", help=f"index file (default: <vault>/{DEFAULT_DB})")
+    parser.add_argument("--no-semantic", action="store_true",
+                        help="keyword search only; skip the local embedding model")
     sub = parser.add_subparsers(dest="command", required=True)
 
     sub.add_parser("index", help="build or refresh the search index")
     sub.add_parser("stats", help="show what is indexed")
 
-    p_search = sub.add_parser("search", help="keyword search, no AI")
+    p_search = sub.add_parser("search", help="search your notes without asking Claude (free)")
     p_search.add_argument("query", nargs="+")
     p_search.add_argument("--folder", help='limit to a folder, e.g. "College"')
     p_search.add_argument("-n", type=int, default=8, help="number of results")
@@ -42,16 +44,25 @@ def main(argv: list[str] | None = None) -> int:
     if not vault.is_dir():
         parser.error(f"vault folder not found: {vault}")
 
-    index = VaultIndex(Path(args.db) if args.db else vault / DEFAULT_DB)
+    embedder = None
+    if not args.no_semantic:
+        from .embeddings import load_default_embedder
+
+        embedder = load_default_embedder()
+    index = VaultIndex(Path(args.db) if args.db else vault / DEFAULT_DB, embedder=embedder)
     try:
         # Keep the index fresh automatically; only changed notes are re-read.
         stats = index.build(vault)
         if args.command == "index":
             print(f"Indexed: {stats.added} new, {stats.updated} updated, "
                   f"{stats.removed} removed, {stats.unchanged} unchanged.")
+            if embedder:
+                print(f"Semantic search: {stats.embedded} chunks embedded with {embedder.name}.")
         elif args.command == "stats":
             s = index.stats()
             print(f"{s['notes']} notes, {s['chunks']} chunks")
+            if s["embedding_model"]:
+                print(f"{s['vectors']} chunks searchable by meaning ({s['embedding_model']})")
             for folder, n in s["folders"].items():
                 print(f"  {folder}: {n}")
         elif args.command == "search":
